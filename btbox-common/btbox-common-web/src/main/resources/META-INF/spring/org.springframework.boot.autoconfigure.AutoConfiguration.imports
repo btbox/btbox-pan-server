@@ -1,0 +1,5 @@
+org.btbox.common.web.config.CaptchaConfig
+org.btbox.common.web.config.FilterConfig
+org.btbox.common.web.config.I18nConfig
+org.btbox.common.web.config.ResourcesConfig
+org.btbox.common.web.config.UndertowConfig

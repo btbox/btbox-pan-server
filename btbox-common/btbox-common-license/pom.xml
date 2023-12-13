@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.btbox</groupId>
+        <artifactId>btbox-common</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>btbox-common-license</artifactId>
+
+    <name>btbox-common-license</name>
+    <description>license模块证书管理引擎</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.btbox</groupId>
+            <artifactId>btbox-common-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.btbox</groupId>
+            <artifactId>btbox-common-json</artifactId>
+        </dependency>
+        <!-- License -->
+        <dependency>
+            <groupId>de.schlichtherle.truelicense</groupId>
+            <artifactId>truelicense-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15to18</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-crypto</artifactId>
+        </dependency>
+    </dependencies>
+</project>

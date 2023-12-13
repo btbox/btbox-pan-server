@@ -1,0 +1,52 @@
+server:
+  port: 7070
+spring:
+  application:
+    name: btbox-monitor-admin
+  profiles:
+    active: @profiles.active@
+
+logging:
+  config: classpath:logback-plus.xml
+
+--- # 监控中心服务端配置
+spring:
+  security:
+    user:
+      name: btbox
+      password: 123456
+  boot:
+    admin:
+      ui:
+        title: btbox-Vue-Plus服务监控中心
+      context-path: /admin
+
+--- # Actuator 监控端点的配置项
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoints:
+    web:
+      # 监控的基础路径默认 actuator
+      #      base-path: /myactuator
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: ALWAYS
+    logfile:
+      external-file: ./logs/btbox-monitor-admin.log
+    prometheus:
+      enabled: true
+
+--- # 监控配置
+spring.boot.admin.client:
+  # 增加客户端开关
+  enabled: true
+  # 设置 Spring Boot Admin Server 地址
+  url: http://localhost:9090/admin
+  instance:
+    service-host-type: IP
+  username: btbox
+  password: 123456

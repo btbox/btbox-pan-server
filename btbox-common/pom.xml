@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>btbox-boot</artifactId>
+        <groupId>org.btbox</groupId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>btbox-common-bom</module>
+        <module>btbox-common-core</module>
+        <module>btbox-common-doc</module>
+        <module>btbox-common-excel</module>
+        <module>btbox-common-idempotent</module>
+        <module>btbox-common-job</module>
+        <module>btbox-common-log</module>
+        <module>btbox-common-mail</module>
+        <module>btbox-common-mybatis</module>
+        <module>btbox-common-ratelimiter</module>
+        <module>btbox-common-redis</module>
+        <module>btbox-common-sms</module>
+        <module>btbox-common-web</module>
+        <module>btbox-common-translation</module>
+        <module>btbox-common-sensitive</module>
+        <module>btbox-common-json</module>
+        <module>btbox-common-encrypt</module>
+        <module>btbox-common-websocket</module>
+        <module>btbox-common-oss</module>
+        <module>btbox-common-license</module>
+    </modules>
+
+    <artifactId>btbox-common</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        common 通用模块
+    </description>
+
+</project>

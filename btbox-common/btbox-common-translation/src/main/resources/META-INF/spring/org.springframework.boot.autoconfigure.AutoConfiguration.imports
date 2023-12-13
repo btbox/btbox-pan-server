@@ -1,0 +1,2 @@
+org.btbox.common.translation.config.TranslationConfig
+org.btbox.common.translation.core.impl.DictTypeTranslationImpl
