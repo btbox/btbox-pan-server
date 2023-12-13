@@ -13,6 +13,7 @@
         <module>btbox-demo</module>
         <module>btbox-job</module>
         <module>btbox-system</module>
+        <module>btbox-user</module>
     </modules>
 
     <artifactId>btbox-modules</artifactId>
