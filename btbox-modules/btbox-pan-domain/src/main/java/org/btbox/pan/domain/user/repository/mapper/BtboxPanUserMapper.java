@@ -1,8 +1,7 @@
-package org.btbox.pan.user.repository.mapper;
+package org.btbox.pan.domain.user.repository.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.btbox.common.mybatis.core.mapper.BaseMapperPlus;
-import org.btbox.pan.user.domain.entity.BtboxPanUser;
+import org.btbox.pan.domain.user.domain.entity.BtboxPanUser;
 
 /**
  * @description:

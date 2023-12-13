@@ -1,6 +1,6 @@
-package org.btbox.pan.user.service;
+package org.btbox.pan.domain.user.service;
 
-import org.btbox.pan.user.domain.bo.UserRegisterBO;
+import org.btbox.pan.domain.user.domain.bo.UserRegisterBO;
 
 /**
  * @description:

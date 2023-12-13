@@ -1,11 +1,11 @@
-package org.btbox.pan.user.domain.bo;
+package org.btbox.pan.domain.user.domain.bo;
 
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import org.btbox.pan.user.domain.entity.BtboxPanUser;
+import org.btbox.pan.domain.user.domain.entity.BtboxPanUser;
 import org.hibernate.validator.constraints.Length;
 
 import java.io.Serial;

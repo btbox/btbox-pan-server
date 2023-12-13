@@ -1,4 +1,4 @@
-package org.btbox.pan.user.domain.entity;
+package org.btbox.pan.domain.user.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;

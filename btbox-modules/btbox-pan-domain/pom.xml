@@ -9,7 +9,7 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>btbox-user</artifactId>
+    <artifactId>btbox-pan-domain</artifactId>
     <description>
         用户模块
     </description>

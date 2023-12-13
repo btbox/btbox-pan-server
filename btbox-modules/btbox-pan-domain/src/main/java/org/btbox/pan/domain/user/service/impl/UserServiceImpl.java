@@ -1,4 +1,4 @@
-package org.btbox.pan.user.service.impl;
+package org.btbox.pan.domain.user.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.common.core.utils.MessageUtils;
-import org.btbox.pan.user.domain.bo.UserRegisterBO;
-import org.btbox.pan.user.domain.entity.BtboxPanUser;
-import org.btbox.pan.user.repository.mapper.BtboxPanUserMapper;
-import org.btbox.pan.user.service.UserService;
+import org.btbox.pan.domain.user.domain.bo.UserRegisterBO;
+import org.btbox.pan.domain.user.domain.entity.BtboxPanUser;
+import org.btbox.pan.domain.user.repository.mapper.BtboxPanUserMapper;
+import org.btbox.pan.domain.user.service.UserService;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
