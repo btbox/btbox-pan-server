@@ -13,7 +13,7 @@
         <module>btbox-demo</module>
         <module>btbox-job</module>
         <module>btbox-system</module>
-        <module>btbox-pan-domain</module>
+        <module>btbox-pan-services</module>
     </modules>
 
     <artifactId>btbox-modules</artifactId>
