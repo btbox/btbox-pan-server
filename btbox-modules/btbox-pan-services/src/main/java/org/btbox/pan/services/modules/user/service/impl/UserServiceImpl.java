@@ -48,7 +48,7 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
      * @param userRegisterContext
      */
     private void assembleUserEntity(UserRegisterContext userRegisterContext) {
-        BtboxPanUser entity = MapstructUtils.convert(userRegisterContext, BtboxPanUser.class)
+        BtboxPanUser entity = MapstructUtils.convert(userRegisterContext, BtboxPanUser.class);
         entity.setUserId(IdWorker.getId());
         entity.setPassword(PasswordUtil.encrypt(userRegisterContext.getPassword()));
         userRegisterContext.setEntity(entity);
@@ -71,8 +71,9 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
             } catch (DuplicateKeyException duplicateKeyException) {
                 throw new ServiceException(MessageUtils.message("user.username.has"));
             }
+        } else {
+            throw new ServiceException("注册出现异常");
         }
-        throw new ServiceException();
     }
 
     private void createUserRootFolder(UserRegisterContext userRegisterContext) {

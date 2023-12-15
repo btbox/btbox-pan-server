@@ -49,21 +49,10 @@ spring:
         # 主库数据源
         master:
           type: ${spring.datasource.type}
-          driverClassName: org.h2.Driver
-          # MODE=MYSQL; 是MYSQL的模式也就是模拟其他数据库系统的行为和语法
-          # CASE_INSENSITIVE_IDENTIFIERS=TRUE;不进行区分大小写配置，可以看数据库需要选择配置
-          # AUTO_SERVER=TRUE 自动服务器模式，它将允许多个进程同时连接到同一个数据库，而不需要手动启动服务器进程。自动服务器模式会在第一个连接请求到达时自动启动服务器，然后处理后续的连接请求。
-          url: jdbc:h2:./db/btbox-boot;MODE=MYSQL;AUTO_SERVER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;
+          driverClassName: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://10.1.1.68:3306/btbox-pan?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
           username: root
           password: root
-        # 从库数据源
-#        slave:
-#          lazy: true
-#          type: ${spring.datasource.type}
-#          driverClassName: com.mysql.cj.jdbc.Driver
-#          url: jdbc:mysql://localhost:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
-#          username:
-#          password:
 #        oracle:
 #          type: ${spring.datasource.type}
 #          driverClassName: oracle.jdbc.OracleDriver
@@ -106,7 +95,7 @@ spring:
 spring.data:
   redis:
     # 地址
-    host: localhost
+    host: 10.1.1.68
     # 端口，默认为6379
     port: 6379
     # 数据库索引

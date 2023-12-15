@@ -393,6 +393,12 @@
                 <version>${revision}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.btbox</groupId>
+                <artifactId>btbox-pan-services</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
