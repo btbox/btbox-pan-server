@@ -202,7 +202,6 @@ public class UserTest {
         checkAnswerContext.setAnswer(ANSWER);
         String token = userService.checkAnswer(checkAnswerContext);
 
-        System.out.println("token = " + token);
         // 重置密码
         ResetPasswordContext resetPasswordContext = new ResetPasswordContext();
         resetPasswordContext.setUsername(USERNAME);
@@ -212,6 +211,43 @@ public class UserTest {
 
     }
 
+    /**
+     * 在线修改密码
+     */
+    @Test
+    public void changePasswordSuccess() {
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+
+        // 登录
+        StpUtil.login(register);
+
+        ChangePasswordContext changePasswordContext = new ChangePasswordContext();
+        changePasswordContext.setOldPassword(context.getPassword());
+        changePasswordContext.setNewPassword("87654321");
+        userService.changePassword(changePasswordContext);
+
+    }
+
+    /**
+     * 在线修改密码-错误测试
+     */
+    @Test
+    public void changePasswordError() {
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+
+        // 登录
+        StpUtil.login(register);
+
+        ChangePasswordContext changePasswordContext = new ChangePasswordContext();
+        changePasswordContext.setOldPassword(context.getPassword() + "123");
+        changePasswordContext.setNewPassword("87654321");
+        userService.changePassword(changePasswordContext);
+
+    }
 
     /**************************** private ****************************/
 

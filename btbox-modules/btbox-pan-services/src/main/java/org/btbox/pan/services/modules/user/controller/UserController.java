@@ -71,4 +71,12 @@ public class UserController {
         return R.ok();
     }
 
+    @Operation(summary = "用户在线修改密码", description = "该接口提供了用户在线修改密码")
+    @PostMapping("password/change")
+    public R<Void> changePassword(@Validated @RequestBody ChangePasswordBO changePasswordBO) {
+        ChangePasswordContext context = MapstructUtils.convert(changePasswordBO, ChangePasswordContext.class);
+        userService.changePassword(context);
+        return R.ok();
+    }
+
 }

@@ -69,4 +69,14 @@ public interface UserService {
      * @return: void
      */
     void resetPassword(ResetPasswordContext context);
+
+    /**
+     * 在线修改密码
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/25 17:08
+     * @return: void
+     */
+    void changePassword(ChangePasswordContext context);
 }

@@ -112,6 +112,68 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
         checkAndResetUserPassword(context);
     }
 
+    /**
+     * 在线修改密码
+     * 1. 校验旧密码
+     * 2. 重置新密码
+     * 3. 退出当前的登录状态
+     * @param context
+     */
+    @Override
+    public void changePassword(ChangePasswordContext context) {
+        checkOldPassword(context);
+        doChangePassword(context);
+        exitLoginStatus(context);
+    }
+
+    /**
+     * 退出用户的登录状态
+     * @param context
+     */
+    private void exitLoginStatus(ChangePasswordContext context) {
+        StpUtil.logout();
+    }
+
+    /**
+     * 修改新密码
+     * @param context
+     */
+    private void doChangePassword(ChangePasswordContext context) {
+        String newPassword = context.getNewPassword();
+        BtboxPanUser entity = context.getEntity();
+        // 加密新密码
+        String encNewPassword = PasswordUtil.encrypt(newPassword);
+        entity.setPassword(encNewPassword);
+
+        if (!this.updateById(entity)) {
+            throw new ServiceException(MessageUtils.message("user.change.password.error"));
+        }
+
+    }
+
+    /**
+     * 校验用户的旧密码
+     * 查询并封装用户的实体信息到上下文对象中
+     * @param context
+     */
+    private void checkOldPassword(ChangePasswordContext context) {
+        // 设置用户id
+        context.setUserId(Long.parseLong(StpUtil.getLoginId().toString()));
+        String oldPassword = context.getOldPassword();
+
+        BtboxPanUser entity = this.getById(context.getUserId());
+        if (ObjectUtil.isEmpty(entity)) {
+            throw new ServiceException(MessageUtils.message("user.not.exists"));
+        }
+        context.setEntity(entity);
+
+        // 校验数据库密码和当前用户输入的旧密码是否一致
+        boolean decrypt = PasswordUtil.decrypt(oldPassword, entity.getPassword());
+        if (!decrypt) {
+            throw new ServiceException(MessageUtils.message("user.old.password.verify.error"));
+        }
+    }
+
 
     /************************************private****************************/
 
@@ -146,10 +208,6 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
         if (ObjectUtil.isEmpty(value)) {
             throw new ServiceException(ResponseCode.TOKEN_EXPIRE.getDesc(), ResponseCode.TOKEN_EXPIRE.getCode());
         }
-
-        System.out.println("2token = " + token);
-
-        System.out.println("value = " + value);
 
         // token值不一致
         if (!StringUtils.equals(value.toString(), context.getUsername())) {
