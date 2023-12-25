@@ -2,19 +2,20 @@ package org.btbox.pan.services.modules.user.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.constant.FileConstants;
+import org.btbox.common.core.constant.UserConstants;
+import org.btbox.common.core.enums.ResponseCode;
 import org.btbox.common.core.exception.ServiceException;
-import org.btbox.common.core.utils.MapstructUtils;
-import org.btbox.common.core.utils.MessageUtils;
-import org.btbox.common.core.utils.PasswordUtil;
+import org.btbox.common.core.utils.*;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.service.UserFileService;
-import org.btbox.pan.services.modules.user.domain.context.UserLoginContext;
-import org.btbox.pan.services.modules.user.domain.context.UserRegisterContext;
+import org.btbox.pan.services.modules.user.domain.context.*;
 import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
 import org.btbox.pan.services.modules.user.repository.mapper.BtboxPanUserMapper;
 import org.btbox.pan.services.modules.user.service.UserService;
@@ -22,6 +23,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.lang.constant.ConstantDesc;
+import java.util.Date;
 
 /**
  * @description:
@@ -71,8 +73,99 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
         }
     }
 
+    @Override
+    public String checkUsername(CheckUsernameContext checkUsernameContext) {
+        LambdaQueryWrapper<BtboxPanUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(BtboxPanUser::getQuestion);
+        queryWrapper.eq(BtboxPanUser::getUsername, checkUsernameContext.getUsername());
+        BtboxPanUser user = this.getOne(queryWrapper);
+        if (ObjectUtil.isEmpty(user)) {
+            throw new ServiceException(MessageUtils.message("user.not.exists", checkUsernameContext.getUsername()));
+        }
+        return user.getQuestion();
+    }
+
+    @Override
+    public String checkAnswer(CheckAnswerContext context) {
+        LambdaQueryWrapper<BtboxPanUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BtboxPanUser::getUsername, context.getUsername());
+        queryWrapper.eq(BtboxPanUser::getQuestion, context.getQuestion());
+        queryWrapper.eq(BtboxPanUser::getAnswer, context.getAnswer());
+
+        long count = this.count(queryWrapper);
+        if (count == 0) {
+            throw new ServiceException(MessageUtils.message("user.answer.error"));
+        }
+
+        return generateAndSaveCheckAnswerToken(context);
+    }
+
+    /**
+     * 重置用户密码
+     * 1. 校验token是否有效
+     * 2. 重置密码
+     * @param context
+     */
+    @Override
+    public void resetPassword(ResetPasswordContext context) {
+        checkForgetPasswordToken(context);
+        checkAndResetUserPassword(context);
+    }
+
 
     /************************************private****************************/
+
+    /**
+     * 校验用户和重置密码
+     * @param context
+     */
+    private void checkAndResetUserPassword(ResetPasswordContext context) {
+        String username = context.getUsername();
+        String password = context.getPassword();
+        BtboxPanUser entity = getUserByUsername(username);
+        if (ObjectUtil.isEmpty(entity)) {
+            throw new ServiceException(MessageUtils.message("user.not.exists"));
+        }
+        String newDBPassword = PasswordUtil.encrypt(password);
+        entity.setPassword(newDBPassword);
+
+        if (!this.updateById(entity)) {
+            throw new ServiceException(MessageUtils.message("user.password.reset.error"));
+        }
+
+    }
+
+    /**
+     * 验证忘记密码的token是否有效
+     * @param context
+     */
+    private void checkForgetPasswordToken(ResetPasswordContext context) {
+        String token = context.getToken();
+        Object value = JwtUtil.analyzeToken(token, UserConstants.FORGET_USERNAME);
+        // token不存在
+        if (ObjectUtil.isEmpty(value)) {
+            throw new ServiceException(ResponseCode.TOKEN_EXPIRE.getDesc(), ResponseCode.TOKEN_EXPIRE.getCode());
+        }
+
+        System.out.println("2token = " + token);
+
+        System.out.println("value = " + value);
+
+        // token值不一致
+        if (!StringUtils.equals(value.toString(), context.getUsername())) {
+            throw new ServiceException("token错误");
+        }
+    }
+
+
+    /**
+     * 生成用户忘记密码-校验密保答案通过的临时token
+     * @param context
+     * @return
+     */
+    private String generateAndSaveCheckAnswerToken(CheckAnswerContext context) {
+        return JwtUtil.generateToken(context.getUsername(), UserConstants.FORGET_USERNAME, context.getUsername(), UserConstants.FIVE_MINUTES_LONG);
+    }
 
     /**
      * 生成并保存登录之后的凭证

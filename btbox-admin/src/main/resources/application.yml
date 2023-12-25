@@ -255,7 +255,3 @@ security:
     # actuator 监控配置
     - /actuator
     - /actuator/**
-    # 用户
-    - /user/login
-    - /user/exit
-    - /user/register

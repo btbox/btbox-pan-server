@@ -1,7 +1,6 @@
 package org.btbox.pan.services.modules.user.service;
 
-import org.btbox.pan.services.modules.user.domain.context.UserLoginContext;
-import org.btbox.pan.services.modules.user.domain.context.UserRegisterContext;
+import org.btbox.pan.services.modules.user.domain.context.*;
 
 /**
  * @description:
@@ -40,4 +39,34 @@ public interface UserService {
      * @return: void
      */
     void exit();
+
+    /**
+     * 校验用户名
+     * @author: BT-BOX(HJH)
+     * @param
+     * @version: 1.0
+     * @createDate: 2023/12/25 11:27
+     * @return: void
+     */
+    String checkUsername(CheckUsernameContext checkUsernameContext);
+
+    /**
+     * 校验密保答案
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/25 15:09
+     * @return: java.lang.String
+     */
+    String checkAnswer(CheckAnswerContext context);
+
+    /**
+     * 重置用户密码
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/25 16:04
+     * @return: void
+     */
+    void resetPassword(ResetPasswordContext context);
 }

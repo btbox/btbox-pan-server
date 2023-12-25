@@ -3,8 +3,7 @@ package org.btbox.pan.services.modules.user;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import org.btbox.common.core.utils.StringUtils;
-import org.btbox.pan.services.modules.user.domain.context.UserLoginContext;
-import org.btbox.pan.services.modules.user.domain.context.UserRegisterContext;
+import org.btbox.pan.services.modules.user.domain.context.*;
 import org.btbox.pan.services.modules.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
  * @version: 1.0
  */
 @SpringBootTest
-// @Transactional
+@Transactional
 public class UserTest {
 
+    public static final String QUESTION = "question";
+    public static final String ANSWER = "answer";
     @Autowired
     private UserService userService;
 
@@ -91,12 +92,124 @@ public class UserTest {
      */
     @Test
     public void exitSuccess() {
-        // UserRegisterContext context = createUserRegisterContext();
-        // Long register = userService.register(context);
-        // Assert.isTrue(register > 0L);
-        // 1735499970887966722
-        StpUtil.login("1735499970887966722");
-        // StpUtil.logout(register);
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+        StpUtil.login(register);
+        StpUtil.logout(register);
+    }
+
+    /**
+     * 校验用户名称通过
+     */
+    @Test
+    public void checkUsernameSuccess() {
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+        CheckUsernameContext checkUsernameContext = new CheckUsernameContext();
+        checkUsernameContext.setUsername(USERNAME);
+        String question = userService.checkUsername(checkUsernameContext);
+        Assert.isTrue(StringUtils.isNoneBlank(question));
+    }
+
+    /**
+     * 校验用户名称失败-没有查询到该用户
+     */
+    @Test
+    public void checkUsernameNotExist() {
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+        CheckUsernameContext checkUsernameContext = new CheckUsernameContext();
+        checkUsernameContext.setUsername("USERNAME");
+        String question = userService.checkUsername(checkUsernameContext);
+    }
+
+    /**
+     * 校验密保问题答案
+     */
+    @Test
+    public void checkAnswerSuccess() {
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+        CheckAnswerContext checkAnswerContext = new CheckAnswerContext();
+        checkAnswerContext.setUsername(USERNAME);
+        checkAnswerContext.setQuestion(QUESTION);
+        checkAnswerContext.setAnswer(ANSWER);
+
+        String token = userService.checkAnswer(checkAnswerContext);
+        Assert.isTrue(StringUtils.isNoneBlank(token));
+    }
+
+    /**
+     * 校验密保问题答案失败-密保问题答案不正确
+     */
+    @Test
+    public void checkAnswerError() {
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+        CheckAnswerContext checkAnswerContext = new CheckAnswerContext();
+        checkAnswerContext.setUsername(USERNAME);
+        checkAnswerContext.setQuestion(QUESTION);
+        checkAnswerContext.setAnswer("ANSWER");
+
+        String token = userService.checkAnswer(checkAnswerContext);
+    }
+
+    /**
+     * 重置用户密码成功
+     */
+    @Test
+    public void resetPasswordSuccess() {
+        // 注册用户
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+
+        // 获取token
+        CheckAnswerContext checkAnswerContext = new CheckAnswerContext();
+        checkAnswerContext.setUsername(USERNAME);
+        checkAnswerContext.setQuestion(QUESTION);
+        checkAnswerContext.setAnswer(ANSWER);
+        String token = userService.checkAnswer(checkAnswerContext);
+
+        // 重置密码
+        ResetPasswordContext resetPasswordContext = new ResetPasswordContext();
+        resetPasswordContext.setUsername(USERNAME);
+        resetPasswordContext.setPassword(PASSWORD + "_change");
+        resetPasswordContext.setToken(token);
+        userService.resetPassword(resetPasswordContext);
+
+    }
+
+    /**
+     * 重置用户密码错误
+     */
+    @Test
+    public void resetPasswordError() {
+        // 注册用户
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+
+        // 获取token
+        CheckAnswerContext checkAnswerContext = new CheckAnswerContext();
+        checkAnswerContext.setUsername(USERNAME);
+        checkAnswerContext.setQuestion(QUESTION);
+        checkAnswerContext.setAnswer(ANSWER);
+        String token = userService.checkAnswer(checkAnswerContext);
+
+        System.out.println("token = " + token);
+        // 重置密码
+        ResetPasswordContext resetPasswordContext = new ResetPasswordContext();
+        resetPasswordContext.setUsername(USERNAME);
+        resetPasswordContext.setPassword(PASSWORD + "_change");
+        resetPasswordContext.setToken("change");
+        userService.resetPassword(resetPasswordContext);
+
     }
 
 
@@ -117,8 +230,8 @@ public class UserTest {
         UserRegisterContext context = new UserRegisterContext();
         context.setUsername(USERNAME);
         context.setPassword(PASSWORD);
-        context.setQuestion("question");
-        context.setAnswer("answer");
+        context.setQuestion(QUESTION);
+        context.setAnswer(ANSWER);
         return context;
     }
 
