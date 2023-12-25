@@ -14,9 +14,11 @@ import org.btbox.common.core.enums.ResponseCode;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.*;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
+import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.user.domain.context.*;
 import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
+import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 import org.btbox.pan.services.modules.user.repository.mapper.BtboxPanUserMapper;
 import org.btbox.pan.services.modules.user.service.UserService;
 import org.springframework.dao.DuplicateKeyException;
@@ -127,6 +129,39 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
     }
 
     /**
+     * 查询在线用户的基本信息
+     * 1. 查询用户的基本信息实体
+     * 2. 查询用户的根文件夹信息
+     * 3. 拼装VO对象返回
+     * @param userId 用户id
+     * @return
+     */
+    @Override
+    public UserInfoVO info(Long userId) {
+
+        BtboxPanUser entity = this.getById(userId);
+        if (ObjectUtil.isEmpty(entity)) {
+            throw new ServiceException(MessageUtils.message("user.not.exists"));
+        }
+
+        UserFile userRootFileInfo = getUserRootFileInfo(userId);
+        if (ObjectUtil.isEmpty(userRootFileInfo)) {
+            throw new ServiceException("查询用户根文件夹信息失败");
+        }
+
+
+        return 实体;
+    }
+
+    /**
+     * 获取用户根文件夹信息实体
+     * @param userId
+     */
+    private UserFile getUserRootFileInfo(Long userId) {
+        return userFileService.getUserRootFile(userId);
+    }
+
+    /**
      * 退出用户的登录状态
      * @param context
      */
@@ -158,7 +193,7 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
      */
     private void checkOldPassword(ChangePasswordContext context) {
         // 设置用户id
-        context.setUserId(Long.parseLong(StpUtil.getLoginId().toString()));
+        context.setUserId(StpUtil.getLoginIdAsLong());
         String oldPassword = context.getOldPassword();
 
         BtboxPanUser entity = this.getById(context.getUserId());

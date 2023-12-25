@@ -37,6 +37,15 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         );
     }
 
+    @Override
+    public UserFile getUserRootFile(Long userId) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getUserId, userId);
+        queryWrapper.eq(UserFile::getParentId, FileConstants.TOP_PARENT_ID);
+        queryWrapper.eq(UserFile::getFolderFlag, FolderFlagEnum.YES);
+        return this.getOne(queryWrapper);
+    }
+
 
     /**
      * 保存用户文件的映射记录

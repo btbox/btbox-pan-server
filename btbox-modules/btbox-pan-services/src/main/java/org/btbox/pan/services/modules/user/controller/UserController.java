@@ -1,6 +1,8 @@
 package org.btbox.pan.services.modules.user.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaIgnore;
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.IdUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,12 +12,10 @@ import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.common.core.utils.MessageUtils;
 import org.btbox.pan.services.modules.user.domain.bo.*;
 import org.btbox.pan.services.modules.user.domain.context.*;
+import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 import org.btbox.pan.services.modules.user.service.UserService;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("user")
 @RestController
@@ -77,6 +77,13 @@ public class UserController {
         ChangePasswordContext context = MapstructUtils.convert(changePasswordBO, ChangePasswordContext.class);
         userService.changePassword(context);
         return R.ok();
+    }
+
+    @Operation(summary = "查询登录用户的基本信息", description = "该接口提供了查询登录用户的基本信息功能")
+    @GetMapping("password/change")
+    @SaCheckLogin
+    public R<UserInfoVO> info() {
+        return R.ok(userService.info(StpUtil.getLoginIdAsLong()));
     }
 
 }

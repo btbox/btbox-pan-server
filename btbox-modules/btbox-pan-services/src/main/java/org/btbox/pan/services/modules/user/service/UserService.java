@@ -1,6 +1,7 @@
 package org.btbox.pan.services.modules.user.service;
 
 import org.btbox.pan.services.modules.user.domain.context.*;
+import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 
 /**
  * @description:
@@ -79,4 +80,14 @@ public interface UserService {
      * @return: void
      */
     void changePassword(ChangePasswordContext context);
+
+    /**
+     * 查询在线用户的基本信息
+     * @author: BT-BOX(HJH)
+     * @param userId 用户id
+     * @version: 1.0
+     * @createDate: 2023/12/25 17:48
+     * @return: org.btbox.pan.services.modules.user.domain.vo.UserInfoVO
+     */
+    UserInfoVO info(Long userId);
 }
