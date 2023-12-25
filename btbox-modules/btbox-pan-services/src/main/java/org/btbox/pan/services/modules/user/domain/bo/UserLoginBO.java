@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+import org.btbox.pan.services.modules.user.domain.context.UserLoginContext;
 import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
 import org.hibernate.validator.constraints.Length;
 
@@ -18,12 +19,12 @@ import java.io.Serializable;
  * @version: 1.0
  */
 @Data
-@AutoMapper(target = BtboxPanUser.class)
-@Schema(title = "用户注册参数")
-public class UserRegisterBO implements Serializable {
+@AutoMapper(target = UserLoginContext.class)
+@Schema(title = "用户登录参数")
+public class UserLoginBO implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = -9106305913458592523L;
+    private static final long serialVersionUID = -6814892580983862111L;
 
     @Schema(title = "用户名", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "用户名不能为空")
@@ -34,15 +35,5 @@ public class UserRegisterBO implements Serializable {
     @NotBlank(message = "密码不能为空")
     @Length(min = 8, max = 16, message = "请输入8-16位的密码")
     private String password;
-
-    @Schema(title = "密码问题", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "密保问题不能为空")
-    @Length(max = 100, message = "密保问题不能超过100个字符")
-    private String question;
-
-    @Schema(title = "密码答案", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "密保答案不能为空")
-    @Length(max = 100, message = "密保答案不能超过100个字符")
-    private String answer;
 
 }

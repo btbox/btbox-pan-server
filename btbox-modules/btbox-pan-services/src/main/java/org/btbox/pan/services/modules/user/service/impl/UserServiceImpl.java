@@ -1,6 +1,8 @@
 package org.btbox.pan.services.modules.user.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -11,12 +13,15 @@ import org.btbox.common.core.utils.MessageUtils;
 import org.btbox.common.core.utils.PasswordUtil;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.service.UserFileService;
+import org.btbox.pan.services.modules.user.domain.context.UserLoginContext;
 import org.btbox.pan.services.modules.user.domain.context.UserRegisterContext;
 import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
 import org.btbox.pan.services.modules.user.repository.mapper.BtboxPanUserMapper;
 import org.btbox.pan.services.modules.user.service.UserService;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+
+import java.lang.constant.ConstantDesc;
 
 /**
  * @description:
@@ -39,6 +44,77 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
         //
         createUserRootFolder(userRegisterContext);
         return userRegisterContext.getEntity().getUserId();
+    }
+
+    /**
+     * 用户登录业务实现
+     * 需要实现的功能：
+     * 1、用户的登录信息校验
+     * 2、生成一个具有时效性的accessToken
+     * 3、将accessToken缓存起来，时去实现单机登录
+     * @param userLoginContext
+     * @return
+     */
+    @Override
+    public String login(UserLoginContext userLoginContext) {
+        checkLoginInfo(userLoginContext);
+        generateAndSaveAccessToken(userLoginContext);
+        return userLoginContext.getAccessToken();
+    }
+
+    @Override
+    public void exit() {
+        try {
+            StpUtil.logout();
+        } catch (Exception e) {
+            throw new ServiceException(MessageUtils.message("user.unknown.error"));
+        }
+    }
+
+
+    /************************************private****************************/
+
+    /**
+     * 生成并保存登录之后的凭证
+     * @param userLoginContext
+     */
+    private void generateAndSaveAccessToken(UserLoginContext userLoginContext) {
+        BtboxPanUser entity = userLoginContext.getEntity();
+        // 登录
+        StpUtil.login(entity.getUserId());
+        // 获取token值
+        userLoginContext.setAccessToken(StpUtil.getTokenValue());
+    }
+
+    /**
+     * 校验用户密码
+     * @param userLoginContext
+     */
+    private void checkLoginInfo(UserLoginContext userLoginContext) {
+        String username = userLoginContext.getUsername();
+        String password = userLoginContext.getPassword();
+
+        BtboxPanUser entity = getUserByUsername(username);
+        if (ObjectUtil.isEmpty(entity)) {
+            throw new ServiceException("用户名不存在");
+        }
+        userLoginContext.setEntity(entity);
+        String dbPassword = entity.getPassword();
+        boolean checkPassword = PasswordUtil.decrypt(password, dbPassword);
+        if (!checkPassword) {
+            throw new ServiceException("密码不正确");
+        }
+    }
+
+    /**
+     * 通过用户名称获取用户实体信息
+     * @param username
+     * @return
+     */
+    private BtboxPanUser getUserByUsername(String username) {
+        LambdaQueryWrapper<BtboxPanUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BtboxPanUser::getUsername, username);
+        return this.getOne(queryWrapper);
     }
 
     /**

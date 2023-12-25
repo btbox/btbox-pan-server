@@ -5,17 +5,19 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.btbox</groupId>
-        <artifactId>btbox-modules</artifactId>
+        <artifactId>btbox-boot</artifactId>
         <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>btbox-pan-services</artifactId>
+    <artifactId>btbox-common-satoken</artifactId>
+
     <description>
-        用户模块
+        satoken配置
     </description>
 
     <dependencies>
-        <!-- 通用工具-->
+
         <dependency>
             <groupId>org.btbox</groupId>
             <artifactId>btbox-common-core</artifactId>
@@ -23,27 +25,23 @@
 
         <dependency>
             <groupId>org.btbox</groupId>
-            <artifactId>btbox-common-doc</artifactId>
+            <artifactId>btbox-common-redis</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.btbox</groupId>
-            <artifactId>btbox-common-mybatis</artifactId>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.btbox</groupId>
-            <artifactId>btbox-common-translation</artifactId>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-redisson-jackson</artifactId>
         </dependency>
 
+        <!-- Sa-Token 整合 jwt -->
         <dependency>
-            <groupId>org.btbox</groupId>
-            <artifactId>btbox-common-log</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.btbox</groupId>
-            <artifactId>btbox-common-security</artifactId>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-jwt</artifactId>
         </dependency>
 
     </dependencies>

@@ -152,6 +152,20 @@
                 <version>${revision}</version>
             </dependency>
 
+            <!-- 登录权限校验模块 -->
+            <dependency>
+                <groupId>org.btbox</groupId>
+                <artifactId>btbox-common-satoken</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 登录权限校验模块 -->
+            <dependency>
+                <groupId>org.btbox</groupId>
+                <artifactId>btbox-common-security</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

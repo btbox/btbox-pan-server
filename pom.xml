@@ -211,6 +211,11 @@
                 <artifactId>sa-token-core</artifactId>
                 <version>${satoken.version}</version>
             </dependency>
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redisson-jackson</artifactId>
+                <version>${satoken.version}</version>
+            </dependency>
 
             <!-- dynamic-datasource 多数据源-->
             <dependency>
@@ -407,6 +412,7 @@
         <module>btbox-common</module>
         <module>btbox-extend</module>
         <module>btbox-modules</module>
+        <module>btbox-common/btbox-common-satoken</module>
     </modules>
     <packaging>pom</packaging>
 

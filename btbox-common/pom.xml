@@ -30,6 +30,8 @@
         <module>btbox-common-websocket</module>
         <module>btbox-common-oss</module>
         <module>btbox-common-license</module>
+        <module>btbox-common-satoken</module>
+        <module>btbox-common-security</module>
     </modules>
 
     <artifactId>btbox-common</artifactId>
