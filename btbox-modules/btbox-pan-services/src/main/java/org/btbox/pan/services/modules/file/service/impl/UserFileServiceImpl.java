@@ -1,5 +1,7 @@
 package org.btbox.pan.services.modules.file.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -8,13 +10,20 @@ import org.btbox.common.core.constant.FileConstants;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.enums.FolderFlagEnum;
 import org.btbox.common.core.exception.ServiceException;
+import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.common.core.utils.MessageUtils;
+import org.btbox.common.core.utils.StringUtils;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
+import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
+import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.repository.mapper.UserFileMapper;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.service.UserFileService;
+
+import java.util.List;
+
 /**
  * @description: 
  * @author: BT-BOX
@@ -44,6 +53,16 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         queryWrapper.eq(UserFile::getParentId, FileConstants.TOP_PARENT_ID);
         queryWrapper.eq(UserFile::getFolderFlag, FolderFlagEnum.YES.getCode());
         return this.getOne(queryWrapper);
+    }
+
+    @Override
+    public List<UserFileVO> getFileList(QueryFileListContext context) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(UserFile::getFileId, UserFile::getParentId, UserFile::getFilename, UserFile::getFileSizeDesc, UserFile::getFolderFlag, UserFile::getFileType, UserFile::getUpdateTime);
+        queryWrapper.eq(UserFile::getUserId, context.getUserId());
+        queryWrapper.eq(null != context.getParentId() && context.getParentId() != -1, UserFile::getParentId, context.getParentId());
+        queryWrapper.in(CollUtil.isNotEmpty(context.getFileTypeArray()), UserFile::getFileType, context.getFileTypeArray());
+        return MapstructUtils.convert(this.list(queryWrapper), UserFileVO.class);
     }
 
 

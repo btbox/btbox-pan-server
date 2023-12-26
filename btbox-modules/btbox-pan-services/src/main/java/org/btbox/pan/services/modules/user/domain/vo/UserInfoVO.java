@@ -1,7 +1,9 @@
 package org.btbox.pan.services.modules.user.domain.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.btbox.common.json.utils.IdEncryptSerializer;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -21,6 +23,7 @@ public class UserInfoVO implements Serializable {
     @Schema(title = "用户名称")
     private String username;
 
+    @JsonSerialize(using = IdEncryptSerializer.class)
     @Schema(title = "用户根目录ID")
     private Long rootFileId;
 

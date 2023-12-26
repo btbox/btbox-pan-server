@@ -26,9 +26,9 @@ public class UserTest {
     @Autowired
     private UserService userService;
 
-    private final static String USERNAME = "btbox1";
+    public final static String USERNAME = "btbox1";
 
-    private final static String PASSWORD = "12345678";
+    public final static String PASSWORD = "12345678";
 
     @Test
     public void testRegister() {
