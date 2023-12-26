@@ -17,8 +17,10 @@ import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.CreateFolderBO;
+import org.btbox.pan.services.modules.file.domain.bo.UpdateFilenameBO;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
+import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.springframework.validation.annotation.Validated;
@@ -73,6 +75,14 @@ public class FileController {
         CreateFolderContext context = fileConvert.createFolderBO2CreateFolder(createFolderBO);
         Long fileId = userFileService.createFolder(context);
         return R.ok(IdUtil.encrypt(fileId));
+    }
+
+    @Schema(title = "文件重命名", description = "该接口提供了文件重命名的功能")
+    @PutMapping("rename")
+    public R<String> rename(@Validated @RequestBody UpdateFilenameBO updateFilenameBO) {
+        UpdateFilenameContext context = fileConvert.updateFilenameBO2UpdateFilenameContext(updateFilenameBO);
+        userFileService.updateFilename(context);
+        return R.ok();
     }
 
 }

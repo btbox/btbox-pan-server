@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Assert;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
+import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.user.domain.context.UserRegisterContext;
@@ -68,6 +69,29 @@ public class FileTest {
 
         Long fileId = userFileService.createFolder(context);
         Assert.notNull(fileId);
+    }
+
+    /**
+     * 修改文件名称成功
+     */
+    @Test
+    public void testUpdateFilenameSuccess() {
+        Long userId = register();
+        UserInfoVO info = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(info.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name");
+        Long fileId = userFileService.createFolder(context);
+
+        UpdateFilenameContext updateFilenameContext = new UpdateFilenameContext();
+        updateFilenameContext.setFileId(fileId);
+        updateFilenameContext.setUserId(userId);
+        updateFilenameContext.setNewFilename("new-folder-name");
+
+        userFileService.updateFilename(updateFilenameContext);
+
     }
 
 

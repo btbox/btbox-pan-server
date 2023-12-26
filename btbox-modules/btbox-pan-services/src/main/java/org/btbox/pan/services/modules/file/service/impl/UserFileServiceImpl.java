@@ -2,6 +2,7 @@ package org.btbox.pan.services.modules.file.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -15,6 +16,7 @@ import org.btbox.common.core.utils.MessageUtils;
 import org.btbox.common.core.utils.StringUtils;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
+import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.repository.mapper.UserFileMapper;
 import org.springframework.stereotype.Service;
@@ -63,6 +65,70 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         queryWrapper.eq(null != context.getParentId() && context.getParentId() != -1, UserFile::getParentId, context.getParentId());
         queryWrapper.in(CollUtil.isNotEmpty(context.getFileTypeArray()), UserFile::getFileType, context.getFileTypeArray());
         return MapstructUtils.convert(this.list(queryWrapper), UserFileVO.class);
+    }
+
+    /**
+     * 更新文件名称
+     * 1. 校验更新文件名称操作
+     * 2. 执行更新文件名称操作
+     * @param context
+     */
+    @Override
+    public void updateFilename(UpdateFilenameContext context) {
+        checkUpdateFilenameCondition(context);
+        doUpdateFilename(context);
+    }
+
+    /**
+     * 执行更新文件名称操作
+     * @param context
+     */
+    private void doUpdateFilename(UpdateFilenameContext context) {
+        UserFile entity = context.getEntity();
+        entity.setFilename(context.getNewFilename());
+        entity.setUpdateUser(context.getUserId());
+
+        if (!this.updateById(entity)) {
+            throw new ServiceException(MessageUtils.message("file.name.update.error"));
+        }
+    }
+
+    /**
+     * 更新文件名称的条件校验
+     * 1. 文件ID是有效的
+     * 2. 用户有权限更新改文件的文件名称
+     * 3. 新旧文件名称不能一样
+     * 4. 不能使用当前文件夹下面的子文件的名称
+     * @param context
+     */
+    private void checkUpdateFilenameCondition(UpdateFilenameContext context) {
+
+        Long fileId = context.getFileId();
+        String newFilename = context.getNewFilename();
+        UserFile entity = this.getById(fileId);
+
+        if (ObjectUtil.isEmpty(entity)) {
+            throw new ServiceException(MessageUtils.message("file.info.error"));
+        }
+
+        if (!ObjectUtil.equals(entity.getUserId(), context.getUserId())) {
+            throw new ServiceException(MessageUtils.message("file.update.filename.not.permission"));
+        }
+
+        if (ObjectUtil.equals(entity.getFilename(), newFilename)) {
+            throw new ServiceException(MessageUtils.message("file.name.same"));
+        }
+
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getParentId, entity.getParentId());
+        queryWrapper.eq(UserFile::getFilename, newFilename);
+        long count = this.count(queryWrapper);
+
+        if (count > 0) {
+            throw new ServiceException(MessageUtils.message("file.name.used"));
+        }
+
+        context.setEntity(entity);
     }
 
 

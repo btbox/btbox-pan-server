@@ -2,6 +2,7 @@ package org.btbox.pan.services.modules.file.service;
 
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
+import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
@@ -47,4 +48,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: java.util.List<org.btbox.pan.services.modules.file.domain.vo.UserFileVO>
      */
     List<UserFileVO> getFileList(QueryFileListContext context);
+
+    /**
+     * 更新文件名称
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/26 17:22
+     * @return: void
+     */
+    void updateFilename(UpdateFilenameContext context);
 }
