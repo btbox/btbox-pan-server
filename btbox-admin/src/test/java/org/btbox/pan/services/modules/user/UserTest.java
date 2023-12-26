@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Assert;
 import org.btbox.common.core.utils.StringUtils;
 import org.btbox.pan.services.modules.user.domain.context.*;
+import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 import org.btbox.pan.services.modules.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -247,6 +248,19 @@ public class UserTest {
         changePasswordContext.setNewPassword("87654321");
         userService.changePassword(changePasswordContext);
 
+    }
+
+    /**
+     * 查询用户基本信息
+     */
+    @Test
+    public void queryUserInfo() {
+        UserRegisterContext context = createUserRegisterContext();
+        Long register = userService.register(context);
+        Assert.isTrue(register > 0L);
+
+        UserInfoVO info = userService.info(register);
+        Assert.notNull(info);
     }
 
     /**************************** private ****************************/

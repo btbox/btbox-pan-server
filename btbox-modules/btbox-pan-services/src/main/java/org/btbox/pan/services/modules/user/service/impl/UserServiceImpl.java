@@ -16,6 +16,7 @@ import org.btbox.common.core.utils.*;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.service.UserFileService;
+import org.btbox.pan.services.modules.user.convert.UserConvert;
 import org.btbox.pan.services.modules.user.domain.context.*;
 import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
 import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.constant.ConstantDesc;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @description:
@@ -38,6 +40,9 @@ import java.util.Date;
 public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUser> implements UserService {
 
     private final UserFileService userFileService;
+
+    private final UserConvert userConvert;
+
     
     @Override
     public Long register(UserRegisterContext userRegisterContext) {
@@ -149,8 +154,7 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
             throw new ServiceException("查询用户根文件夹信息失败");
         }
 
-
-        return 实体;
+        return userConvert.assembleUserInfoVO(entity, userRootFileInfo);
     }
 
     /**

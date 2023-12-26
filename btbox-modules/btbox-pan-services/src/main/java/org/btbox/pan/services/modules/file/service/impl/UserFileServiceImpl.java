@@ -42,7 +42,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserFile::getUserId, userId);
         queryWrapper.eq(UserFile::getParentId, FileConstants.TOP_PARENT_ID);
-        queryWrapper.eq(UserFile::getFolderFlag, FolderFlagEnum.YES);
+        queryWrapper.eq(UserFile::getFolderFlag, FolderFlagEnum.YES.getCode());
         return this.getOne(queryWrapper);
     }
 

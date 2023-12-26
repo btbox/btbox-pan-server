@@ -1,12 +1,16 @@
 package org.btbox.pan.services.modules.file.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import io.github.linpeilie.annotations.AutoMapper;
+import io.github.linpeilie.annotations.AutoMappers;
+import io.github.linpeilie.annotations.AutoMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
 import lombok.Data;
+import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 
 /**
  * @description: 
