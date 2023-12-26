@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.btbox</groupId>
         <artifactId>btbox-modules</artifactId>
-        <version>1.0.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>btbox-pan-services</artifactId>

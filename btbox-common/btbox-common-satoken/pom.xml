@@ -5,9 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.btbox</groupId>
-        <artifactId>btbox-boot</artifactId>
-        <version>1.0.0</version>
-        <relativePath>../../pom.xml</relativePath>
+        <artifactId>btbox-common</artifactId>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>btbox-common-satoken</artifactId>

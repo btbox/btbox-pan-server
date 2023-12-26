@@ -3,6 +3,7 @@ package org.btbox.pan.services.modules.file;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import org.btbox.common.core.enums.DelFlagEnum;
+import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
@@ -50,6 +51,23 @@ public class FileTest {
 
         List<UserFileVO> fileList = userFileService.getFileList(context);
         Assert.isTrue(CollUtil.isEmpty(fileList));
+    }
+
+    /**
+     * 测试创建文件夹成功
+     */
+    @Test
+    public void testCreateFolderSuccess() {
+        Long userId = register();
+        UserInfoVO info = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(info.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name");
+
+        Long fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
     }
 
 

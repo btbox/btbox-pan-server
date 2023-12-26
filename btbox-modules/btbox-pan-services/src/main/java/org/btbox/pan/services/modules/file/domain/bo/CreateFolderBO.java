@@ -1,6 +1,7 @@
 package org.btbox.pan.services.modules.file.domain.bo;
 
 import io.github.linpeilie.annotations.AutoMapper;
+import io.github.linpeilie.annotations.AutoMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -15,7 +16,6 @@ import java.io.Serializable;
  * @createDate: 2023/12/26 11:47
  * @version: 1.0
  */
-@AutoMapper(target = CreateFolderContext.class)
 @Schema(title = "创建文件夹参数实体")
 @Data
 public class CreateFolderBO implements Serializable {

@@ -1,5 +1,6 @@
 package org.btbox.pan.services.modules.user.service.impl;
 
+import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.jwt.JWT;
@@ -10,9 +11,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.constant.FileConstants;
 import org.btbox.common.core.constant.UserConstants;
+import org.btbox.common.core.domain.model.LoginUser;
+import org.btbox.common.core.enums.DeviceType;
 import org.btbox.common.core.enums.ResponseCode;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.*;
+import org.btbox.common.satoken.utils.LoginHelper;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.service.UserFileService;
@@ -270,10 +274,28 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
      */
     private void generateAndSaveAccessToken(UserLoginContext userLoginContext) {
         BtboxPanUser entity = userLoginContext.getEntity();
-        // 登录
-        StpUtil.login(entity.getUserId());
+        LoginUser loginUser = buildLoginUser(entity);
+        SaLoginModel model = new SaLoginModel();
+        model.setDevice(DeviceType.PC.getDevice());
+        // model.setTimeout(client.getTimeout());
+        // model.setActiveTimeout(client.getActiveTimeout());
+        // 生成token
+        LoginHelper.login(loginUser, model);
         // 获取token值
         userLoginContext.setAccessToken(StpUtil.getTokenValue());
+    }
+
+    /**
+     * 构建登录对象
+     * @param entity
+     * @return
+     */
+    private LoginUser buildLoginUser(BtboxPanUser entity) {
+        LoginUser loginUser = new LoginUser();
+        loginUser.setUserId(entity.getUserId());
+        loginUser.setUsername(entity.getUsername());
+        // loginUser.setNickname(entity.getNickName());
+        return loginUser;
     }
 
     /**

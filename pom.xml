@@ -412,7 +412,6 @@
         <module>btbox-common</module>
         <module>btbox-extend</module>
         <module>btbox-modules</module>
-        <module>btbox-common/btbox-common-satoken</module>
     </modules>
     <packaging>pom</packaging>
 
