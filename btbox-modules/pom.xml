@@ -14,6 +14,7 @@
         <module>btbox-job</module>
         <module>btbox-system</module>
         <module>btbox-pan-services</module>
+        <module>storage-engine</module>
     </modules>
 
     <artifactId>btbox-modules</artifactId>
