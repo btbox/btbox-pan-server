@@ -18,11 +18,9 @@ import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.CreateFolderBO;
 import org.btbox.pan.services.modules.file.domain.bo.DeleteFileBO;
+import org.btbox.pan.services.modules.file.domain.bo.SecUploadFileBO;
 import org.btbox.pan.services.modules.file.domain.bo.UpdateFilenameBO;
-import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
-import org.btbox.pan.services.modules.file.domain.context.DeleteFileContext;
-import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
-import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
+import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.springframework.validation.annotation.Validated;
@@ -96,6 +94,18 @@ public class FileController {
         context.setFileIdList(fileIdList);
         userFileService.deleteFile(context);
         return R.ok();
+    }
+
+
+    @Schema(title = "文件秒传", description = "该接口提供了文件秒传的功能")
+    @PostMapping("sec-upload")
+    public R<Void> secUpload(@Validated @RequestBody SecUploadFileBO secUploadFileBO) {
+        SecUploadFileContext context = fileConvert.secUploadFileBO2secUploadFileContext(secUploadFileBO);
+        boolean success = userFileService.secUpload(context);
+        if (success) {
+            return R.ok();
+        }
+        return R.fail("文件唯一标识不存在，请手动执行文件上传的操作");
     }
 
 }

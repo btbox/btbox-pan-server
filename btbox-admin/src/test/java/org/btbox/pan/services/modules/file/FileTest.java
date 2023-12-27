@@ -4,20 +4,23 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import com.google.common.collect.Lists;
 import org.btbox.common.core.enums.DelFlagEnum;
-import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
-import org.btbox.pan.services.modules.file.domain.context.DeleteFileContext;
-import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
-import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
+import org.btbox.common.core.exception.ServiceException;
+import org.btbox.common.core.utils.IdUtil;
+import org.btbox.pan.services.modules.file.domain.context.*;
+import org.btbox.pan.services.modules.file.domain.entity.PanFile;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.file.service.PanFileService;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.user.domain.context.UserRegisterContext;
 import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 import org.btbox.pan.services.modules.user.service.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 import static org.btbox.pan.services.modules.user.UserTest.*;
@@ -37,6 +40,9 @@ public class FileTest {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PanFileService panFileService;
 
     /**
      * 测试用户查询文件列表成功
@@ -96,6 +102,61 @@ public class FileTest {
 
     }
 
+    /**
+     * 校验文件删除失败-非法的文件ID
+     */
+    @Test
+    public void testDeleteFileFailByWrongFileId() {
+        Assertions.assertThrows(ServiceException.class, () -> {
+            Long userId = register();
+            UserInfoVO userInfoVO = info(userId);
+
+            CreateFolderContext context = new CreateFolderContext();
+            context.setParentId(userInfoVO.getRootFileId());
+            context.setUserId(userId);
+            context.setFolderName("folder-name-old");
+
+            Long fileId = userFileService.createFolder(context);
+            Assert.notNull(fileId);
+
+            DeleteFileContext deleteFileContext = new DeleteFileContext();
+            List<Long> fileIdList = Lists.newArrayList();
+            fileIdList.add(fileId + 1);
+            deleteFileContext.setFileIdList(fileIdList);
+            deleteFileContext.setUserId(userId);
+
+            userFileService.deleteFile(deleteFileContext);
+        });
+    }
+
+    /**
+     * 校验文件删除失败-非法的用户ID
+     */
+    @Test
+    public void testDeleteFileFailByWrongUserId() {
+        Assertions.assertThrows(ServiceException.class, () -> {
+            Long userId = register();
+            UserInfoVO userInfoVO = info(userId);
+
+            CreateFolderContext context = new CreateFolderContext();
+            context.setParentId(userInfoVO.getRootFileId());
+            context.setUserId(userId);
+            context.setFolderName("folder-name-old");
+
+            Long fileId = userFileService.createFolder(context);
+            Assert.notNull(fileId);
+
+            DeleteFileContext deleteFileContext = new DeleteFileContext();
+            List<Long> fileIdList = Lists.newArrayList();
+            fileIdList.add(fileId);
+            deleteFileContext.setFileIdList(fileIdList);
+            deleteFileContext.setUserId(userId + 1);
+
+            userFileService.deleteFile(deleteFileContext);
+        });
+    }
+
+
     @Test
     public void testDeleteFileSuccess() {
         Long userId = register();
@@ -115,6 +176,71 @@ public class FileTest {
 
         userFileService.deleteFile(deleteFileContext);
     }
+
+    /**
+     * 校验秒传文件成功
+     */
+    @Test
+    public void testSecUploadSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        String identifier = "123456789";
+
+        PanFile record = new PanFile();
+        record.setFileId(IdUtil.get());
+        record.setFilename("filename");
+        record.setRealPath("realpath");
+        record.setFileSize("fileSize");
+        record.setFileSizeDesc("fileSizeDesc");
+        record.setFilePreviewContentType("");
+        record.setIdentifier(identifier);
+        record.setCreateUser(userId);
+        record.setCreateTime(new Date());
+        panFileService.save(record);
+
+        SecUploadFileContext context = new SecUploadFileContext();
+        context.setIdentifier(identifier);
+        context.setFilename("filename");
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+
+        boolean result = userFileService.secUpload(context);
+        Assert.isTrue(result);
+    }
+
+    /**
+     * 校验秒传文件失败
+     */
+    @Test
+    public void testSecUploadFail() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        String identifier = "123456789";
+
+        PanFile record = new PanFile();
+        record.setFileId(IdUtil.get());
+        record.setFilename("filename");
+        record.setRealPath("realpath");
+        record.setFileSize("fileSize");
+        record.setFileSizeDesc("fileSizeDesc");
+        record.setFilePreviewContentType("");
+        record.setIdentifier(identifier);
+        record.setCreateUser(userId);
+        record.setCreateTime(new Date());
+        panFileService.save(record);
+
+        SecUploadFileContext context = new SecUploadFileContext();
+        context.setIdentifier(identifier + "_update");
+        context.setFilename("filename");
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+
+        boolean result = userFileService.secUpload(context);
+        Assert.isFalse(result);
+    }
+
 
 
 

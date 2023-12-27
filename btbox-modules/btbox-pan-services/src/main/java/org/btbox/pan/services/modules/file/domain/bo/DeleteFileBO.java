@@ -13,7 +13,7 @@ import java.io.Serializable;
  * @createDate: 2023/12/27 9:02
  * @version: 1.0
  */
-@Schema(title = "批量删除文件对象参数")
+@Schema(title = "批量删除文件实体参数")
 @Data
 public class DeleteFileBO implements Serializable {
     @Serial

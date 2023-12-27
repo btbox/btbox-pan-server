@@ -1,9 +1,6 @@
 package org.btbox.pan.services.modules.file.service;
 
-import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
-import org.btbox.pan.services.modules.file.domain.context.DeleteFileContext;
-import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
-import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
+import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
@@ -69,4 +66,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: void
      */
     void deleteFile(DeleteFileContext context);
+
+    /**
+     * 文件秒传
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/27 10:27
+     * @return: boolean
+     */
+    boolean secUpload(SecUploadFileContext context);
 }

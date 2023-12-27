@@ -1,6 +1,7 @@
 # 内置配置 不允许修改
 # Sa-Token配置
 sa-token:
+  is-print: false
   # 允许动态设置 token 有效期
   dynamic-active-timeout: true
   # 允许从 请求参数 读取 token
