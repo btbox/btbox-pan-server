@@ -1,6 +1,7 @@
 package org.btbox.pan.services.modules.file.service;
 
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
+import org.btbox.pan.services.modules.file.domain.context.DeleteFileContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
 import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
@@ -58,4 +59,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: void
      */
     void updateFilename(UpdateFilenameContext context);
+
+    /**
+     * 批量删除用户文件
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/27 9:12
+     * @return: void
+     */
+    void deleteFile(DeleteFileContext context);
 }

@@ -2,8 +2,10 @@ package org.btbox.pan.services.modules.file;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import com.google.common.collect.Lists;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
+import org.btbox.pan.services.modules.file.domain.context.DeleteFileContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
 import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
@@ -92,6 +94,26 @@ public class FileTest {
 
         userFileService.updateFilename(updateFilenameContext);
 
+    }
+
+    @Test
+    public void testDeleteFileSuccess() {
+        Long userId = register();
+        UserInfoVO info = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(info.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name");
+        Long fileId = userFileService.createFolder(context);
+
+        DeleteFileContext deleteFileContext = new DeleteFileContext();
+        List<Long> fileIdList = Lists.newArrayList();
+        fileIdList.add(fileId);
+        deleteFileContext.setFileIdList(fileIdList);
+        deleteFileContext.setUserId(userId);
+
+        userFileService.deleteFile(deleteFileContext);
     }
 
 

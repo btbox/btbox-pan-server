@@ -17,8 +17,10 @@ import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.CreateFolderBO;
+import org.btbox.pan.services.modules.file.domain.bo.DeleteFileBO;
 import org.btbox.pan.services.modules.file.domain.bo.UpdateFilenameBO;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
+import org.btbox.pan.services.modules.file.domain.context.DeleteFileContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
 import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
@@ -79,9 +81,20 @@ public class FileController {
 
     @Schema(title = "文件重命名", description = "该接口提供了文件重命名的功能")
     @PutMapping("rename")
-    public R<String> rename(@Validated @RequestBody UpdateFilenameBO updateFilenameBO) {
+    public R<Void> rename(@Validated @RequestBody UpdateFilenameBO updateFilenameBO) {
         UpdateFilenameContext context = fileConvert.updateFilenameBO2UpdateFilenameContext(updateFilenameBO);
         userFileService.updateFilename(context);
+        return R.ok();
+    }
+
+    @Schema(title = "批量删除文件", description = "该接口提供了批量删除文件的功能")
+    @DeleteMapping("delete")
+    public R<Void> delete(@Validated @RequestBody DeleteFileBO deleteFileBO) {
+        DeleteFileContext context = fileConvert.deleteFileBO2DeleteFileContext(deleteFileBO);
+        String fileIds = deleteFileBO.getFileIds();
+        List<Long> fileIdList = StrUtil.split(BtboxConstants.COMMON_SEPARATOR, fileIds).stream().map(IdUtil::decrypt).collect(Collectors.toList());
+        context.setFileIdList(fileIdList);
+        userFileService.deleteFile(context);
         return R.ok();
     }
 

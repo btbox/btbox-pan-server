@@ -1,30 +1,35 @@
 package org.btbox.pan.services.modules.file.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.constant.FileConstants;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.enums.FolderFlagEnum;
+import org.btbox.common.core.event.file.DeleteFileEvent;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.common.core.utils.MessageUtils;
-import org.btbox.common.core.utils.StringUtils;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
+import org.btbox.pan.services.modules.file.domain.context.DeleteFileContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
 import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
+import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.repository.mapper.UserFileMapper;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.service.UserFileService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @description: 
@@ -33,7 +38,10 @@ import java.util.List;
  * @version: 1.0
 */
 @Service
-public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> implements UserFileService{
+@RequiredArgsConstructor
+public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> implements UserFileService {
+
+    private final ApplicationContext  applicationContext;
 
     @Override
     public Long createFolder(CreateFolderContext createFolderContext) {
@@ -77,6 +85,78 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     public void updateFilename(UpdateFilenameContext context) {
         checkUpdateFilenameCondition(context);
         doUpdateFilename(context);
+    }
+
+    /**
+     * 批量删除用户文件
+     * 1. 校验删除的文件
+     * 2. 执行批量删除的动作
+     * 3. 发布批量删除文件的事件，给其他模块订阅使用
+     * @param context
+     */
+    @Override
+    public void deleteFile(DeleteFileContext context) {
+        checkFileDeleteCondition(context);
+        doDeleteFile(context);
+        afterFileDelete(context);
+    }
+
+    /**
+     * 文件删除的后置操作
+     * 1. 对外发布文件删除的事件
+     * @param context
+     */
+    private void afterFileDelete(DeleteFileContext context) {
+        DeleteFileEvent deleteFileEvent = new DeleteFileEvent(this, context.getFileIdList());
+        applicationContext.publishEvent(deleteFileEvent);
+    }
+
+    /**
+     * 执行文件删除操作
+     * @param context
+     */
+    private void doDeleteFile(DeleteFileContext context) {
+        List<Long> fileIdList = context.getFileIdList();
+
+        LambdaUpdateWrapper<UserFile> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.in(UserFile::getFileId, fileIdList);
+        updateWrapper.set(UserFile::getDelFlag, DelFlagEnum.YES.getCode());
+        if (!this.update(updateWrapper)) {
+            throw new ServiceException("文件删除失败");
+        }
+    }
+
+    /**
+     * 删除文件之前的前置校验
+     * @param context
+     */
+    private void checkFileDeleteCondition(DeleteFileContext context) {
+        List<Long> fileIdList = context.getFileIdList();
+
+        List<UserFile> userFiles = this.listByIds(fileIdList);
+        if (userFiles.size() != fileIdList.size()) {
+            throw new ServiceException("存在不合法的文件记录");
+        }
+
+        Set<Long> fileIdSet = userFiles.stream().map(UserFile::getFileId).collect(Collectors.toSet());
+        int oldSize = fileIdSet.size();
+        fileIdSet.addAll(fileIdList);
+        int newSize = fileIdSet.size();
+
+        if (oldSize != newSize) {
+            throw new ServiceException("存在不合法的文件记录");
+        }
+
+        // 校验用户是否只有一个
+        Set<Long> userIdSet = userFiles.stream().map(UserFile::getUserId).collect(Collectors.toSet());
+        if (userIdSet.size() != 1) {
+            throw new ServiceException("存在不合法的文件记录");
+        }
+
+        Long dbUserId = userIdSet.stream().findFirst().get();
+        if (!ObjectUtil.equals(dbUserId, context.getUserId())) {
+            throw new ServiceException("当前登录用户没有删除该文件的权限");
+        }
     }
 
     /**
