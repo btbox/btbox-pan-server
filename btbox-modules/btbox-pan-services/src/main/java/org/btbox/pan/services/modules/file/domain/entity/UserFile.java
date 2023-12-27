@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
 import lombok.Data;
+import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 
 /**
@@ -24,6 +25,7 @@ import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 @Schema(description="用户文件信息表")
 @Data
 @TableName(value = "btbox_pan_user_file")
+@AutoMapper(target = UserFileVO.class)
 public class UserFile {
     /**
      * 文件记录ID

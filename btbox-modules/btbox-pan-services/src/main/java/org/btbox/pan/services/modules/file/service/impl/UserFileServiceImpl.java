@@ -158,7 +158,6 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     private void saveFile(FileUploadContext context) {
         FileSaveContext fileSaveContext = fileConvert.fileUploadContext2FileSaveContext(context);
         panFileService.saveFile(fileSaveContext);
-        System.out.println("fileSaveContext = " + fileSaveContext);
         context.setRecord(fileSaveContext.getRecord());
     }
 
