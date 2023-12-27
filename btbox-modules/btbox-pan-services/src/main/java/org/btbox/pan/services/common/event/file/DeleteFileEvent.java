@@ -1,4 +1,4 @@
-package org.btbox.common.core.event.file;
+package org.btbox.pan.services.common.event.file;
 
 import lombok.*;
 import org.springframework.context.ApplicationEvent;

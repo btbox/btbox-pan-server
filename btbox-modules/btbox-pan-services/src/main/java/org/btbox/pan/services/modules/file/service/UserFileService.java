@@ -76,4 +76,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: boolean
      */
     boolean secUpload(SecUploadFileContext context);
+
+    /**
+     * 单文件上传
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/27 14:48
+     * @return: void
+     */
+    void upload(FileUploadContext context);
 }

@@ -1,5 +1,6 @@
 package org.btbox.pan.services.modules.file.service;
 
+import org.btbox.pan.services.modules.file.domain.context.FileSaveContext;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
 import com.baomidou.mybatisplus.extension.service.IService;
     /**
@@ -10,5 +11,14 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface PanFileService extends IService<PanFile>{
 
+    /**
+     * 上传单文件并保存实体记录
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/27 14:59
+     * @return: void
+     */
+    void saveFile(FileSaveContext context);
 
 }

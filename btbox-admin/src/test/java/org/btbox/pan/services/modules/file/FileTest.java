@@ -8,6 +8,7 @@ import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
+import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.PanFileService;
 import org.btbox.pan.services.modules.file.service.UserFileService;
@@ -18,7 +19,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.List;
@@ -241,10 +244,54 @@ public class FileTest {
         Assert.isFalse(result);
     }
 
+    /**
+     * 测试单文件上传成功
+     */
+    @Test
+    public void testUploadSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
 
+        FileUploadContext context = new FileUploadContext();
+        MultipartFile file = genarateMultipartFile();
+        context.setFile(file);
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setIdentifier("12345678");
+        context.setTotalSize(file.getSize());
+        context.setFilename(file.getOriginalFilename());
+        userFileService.upload(context);
+
+        QueryFileListContext queryFileListContext = new QueryFileListContext();
+        queryFileListContext.setDelFlag(DelFlagEnum.NO.getCode());
+        queryFileListContext.setUserId(userId);
+        queryFileListContext.setParentId(userInfoVO.getRootFileId());
+        List<UserFileVO> fileList = userFileService.getFileList(queryFileListContext);
+        Assert.notEmpty(fileList);
+        Assert.isTrue(fileList.size() == 1);
+    }
 
 
     /************************** private ********************/
+
+    /**
+     * 生成模拟的网络文件实体
+     *
+     * @return
+     */
+    private static MultipartFile genarateMultipartFile() {
+        MultipartFile file = null;
+        try {
+            StringBuffer stringBuffer = new StringBuffer();
+            for (int i = 0; i < 1024 * 1024; i++) {
+                stringBuffer.append("a");
+            }
+            file = new MockMultipartFile("file", "test.txt", "multipart/form-data", stringBuffer.toString().getBytes("UTF-8"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
 
     public Long register() {
         UserRegisterContext context = createUserRegisterContext();

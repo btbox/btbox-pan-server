@@ -404,6 +404,24 @@
                 <version>${revision}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.btbox</groupId>
+                <artifactId>btbox-pan-storage-engine-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.btbox</groupId>
+                <artifactId>btbox-pan-storage-engine-local</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.btbox</groupId>
+                <artifactId>btbox-pan-storage-engine-oss</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

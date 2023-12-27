@@ -13,11 +13,12 @@ import org.btbox.common.core.constant.FileConstants;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.enums.FileTypeEnum;
 import org.btbox.common.core.enums.FolderFlagEnum;
-import org.btbox.common.core.event.file.DeleteFileEvent;
+import org.btbox.pan.services.common.event.file.DeleteFileEvent;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.common.core.utils.MessageUtils;
 import org.btbox.common.core.utils.file.FileUtils;
+import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
@@ -27,6 +28,7 @@ import org.btbox.pan.services.modules.file.service.PanFileService;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -45,6 +47,8 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     private final ApplicationContext applicationContext;
 
     private final PanFileService panFileService;
+
+    private final FileConvert fileConvert;
 
     @Override
     public Long createFolder(CreateFolderContext createFolderContext) {
@@ -124,6 +128,38 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
                 record.getFileSizeDesc()
         );
         return true;
+    }
+
+    /**
+     * 单文件上传
+     * 1. 上传文件并保存实体文件记录
+     * 2. 保存用户文件的关系记录
+     * @param context
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void upload(FileUploadContext context) {
+        saveFile(context);
+        saveUserFile(
+                context.getParentId(),
+                context.getFilename(),
+                FolderFlagEnum.NO,
+                FileTypeEnum.getFileTypeCode(FileUtils.getSuffix(context.getFilename())),
+                context.getRecord().getFileId(),
+                context.getUserId(),
+                context.getRecord().getFileSizeDesc()
+        );
+    }
+
+    /**
+     * 上传文件并保存实体记录
+     * @param context
+     */
+    private void saveFile(FileUploadContext context) {
+        FileSaveContext fileSaveContext = fileConvert.fileUploadContext2FileSaveContext(context);
+        panFileService.saveFile(fileSaveContext);
+        System.out.println("fileSaveContext = " + fileSaveContext);
+        context.setRecord(fileSaveContext.getRecord());
     }
 
     /**

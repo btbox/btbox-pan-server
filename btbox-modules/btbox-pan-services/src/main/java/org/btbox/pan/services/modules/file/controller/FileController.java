@@ -16,10 +16,7 @@ import org.btbox.common.core.domain.R;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
-import org.btbox.pan.services.modules.file.domain.bo.CreateFolderBO;
-import org.btbox.pan.services.modules.file.domain.bo.DeleteFileBO;
-import org.btbox.pan.services.modules.file.domain.bo.SecUploadFileBO;
-import org.btbox.pan.services.modules.file.domain.bo.UpdateFilenameBO;
+import org.btbox.pan.services.modules.file.domain.bo.*;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
@@ -105,6 +102,14 @@ public class FileController {
         if (success) {
             return R.ok();
         }
+        return R.fail("文件唯一标识不存在，请手动执行文件上传的操作");
+    }
+
+    @Schema(title = "单文件上传", description = "该接口提供了单文件上传的功能")
+    @PostMapping("upload")
+    public R<Void> upload(@Validated @RequestBody FileUploadBO fileUploadBO) {
+        FileUploadContext context = fileConvert.fileUploadBO2FileUploadContext(fileUploadBO);
+        userFileService.upload(context);
         return R.fail("文件唯一标识不存在，请手动执行文件上传的操作");
     }
 

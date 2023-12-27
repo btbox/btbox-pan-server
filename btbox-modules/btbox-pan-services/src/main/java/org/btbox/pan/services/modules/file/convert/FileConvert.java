@@ -2,14 +2,8 @@ package org.btbox.pan.services.modules.file.convert;
 
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.satoken.utils.LoginHelper;
-import org.btbox.pan.services.modules.file.domain.bo.CreateFolderBO;
-import org.btbox.pan.services.modules.file.domain.bo.DeleteFileBO;
-import org.btbox.pan.services.modules.file.domain.bo.SecUploadFileBO;
-import org.btbox.pan.services.modules.file.domain.bo.UpdateFilenameBO;
-import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
-import org.btbox.pan.services.modules.file.domain.context.DeleteFileContext;
-import org.btbox.pan.services.modules.file.domain.context.SecUploadFileContext;
-import org.btbox.pan.services.modules.file.domain.context.UpdateFilenameContext;
+import org.btbox.pan.services.modules.file.domain.bo.*;
+import org.btbox.pan.services.modules.file.domain.context.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -38,4 +32,12 @@ public interface FileConvert {
     @Mapping(target = "parentId", expression = "java(IdUtil.decrypt(secUploadFileBO.getParentId()))")
     @Mapping(target = "userId", expression = "java(LoginHelper.getUserId())")
     SecUploadFileContext secUploadFileBO2secUploadFileContext(SecUploadFileBO secUploadFileBO);
+
+    @Mapping(target = "parentId", expression = "java(IdUtil.decrypt(fileUploadBO.getParentId()))")
+    @Mapping(target = "userId", expression = "java(LoginHelper.getUserId())")
+    FileUploadContext fileUploadBO2FileUploadContext(FileUploadBO fileUploadBO);
+
+    @Mapping(target = "record", ignore = true)
+    FileSaveContext fileUploadContext2FileSaveContext(FileUploadContext context);
+
 }
