@@ -108,4 +108,10 @@ public interface UserFileService extends IService<UserFile> {
      * @return: org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO
      */
     UploadedChunksVO getUploadedChunks(QueryUploadedChunksContext context);
+
+    /**
+     * 文件分片合并
+     * @param context
+     */
+    void mergeFile(FileChunkMergeContext context);
 }

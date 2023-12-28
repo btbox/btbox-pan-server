@@ -51,4 +51,10 @@ public interface FileConvert {
 
     @Mapping(target = "userId", expression = "java(LoginHelper.getUserId())")
     QueryUploadedChunksContext queryUploadedChunksBO2QueryUploadedChunksContext(QueryUploadedChunksBO queryUploadedChunksBO);
+
+    @Mapping(target = "parentId", expression = "java(IdUtil.decrypt(fileChunkMergeBO.getParentId()))")
+    @Mapping(target = "userId", expression = "java(LoginHelper.getUserId())")
+    FileChunkMergeContext fileChunkMergeBO2QueryFileChunkMergeContext(FileChunkMergeBO fileChunkMergeBO);
+
+    FileChunkMergeAndSaveContext fileChunkMergeContext2FileChunkMergeAndSaveContext(FileChunkMergeContext context);
 }

@@ -201,6 +201,37 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     }
 
     /**
+     * 文件分片合并
+     * 1. 文件分片物理合并
+     * 2. 保存文件实体记录
+     * 3. 保存文件用户关系映射
+     * @param context
+     */
+    @Override
+    public void mergeFile(FileChunkMergeContext context) {
+        mergeFileDChunkAndSaveFile(context);
+        saveUserFile(
+                context.getParentId(),
+                context.getFilename(),
+                FolderFlagEnum.NO,
+                FileTypeEnum.getFileTypeCode(FileUtils.getSuffix(context.getFilename())),
+                context.getRecord().getFileId(),
+                context.getUserId(),
+                context.getRecord().getFileSizeDesc()
+        );
+    }
+
+    /**
+     * 合并文件分片并保存物理文件记录
+     * @param context
+     */
+    private void mergeFileDChunkAndSaveFile(FileChunkMergeContext context) {
+        FileChunkMergeAndSaveContext fileChunkMergeAndSaveContext = fileConvert.fileChunkMergeContext2FileChunkMergeAndSaveContext(context);
+        panFileService.mergeFileChunkAndSaveFile(fileChunkMergeAndSaveContext);
+        context.setRecord(fileChunkMergeAndSaveContext.getRecord());
+    }
+
+    /**
      * 上传文件并保存实体记录
      * @param context
      */

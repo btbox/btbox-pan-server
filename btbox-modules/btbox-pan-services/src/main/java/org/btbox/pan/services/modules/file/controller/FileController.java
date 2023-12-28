@@ -131,4 +131,12 @@ public class FileController {
         return R.ok(vo);
     }
 
+    @Schema(title = "文件分片合并", description = "该接口提供了文件分片合并的功能")
+    @PostMapping("merge")
+    public R<Void> mergeFile(@Validated @RequestBody FileChunkMergeBO fileChunkMergeBO) {
+        FileChunkMergeContext context = fileConvert.fileChunkMergeBO2QueryFileChunkMergeContext(fileChunkMergeBO);
+        userFileService.mergeFile(context);
+        return R.ok();
+    }
+
 }

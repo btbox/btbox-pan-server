@@ -61,7 +61,7 @@ public abstract class AbstractStorageEngine implements StorageEngine {
     private void checkStoreFileChunkContext(StoreFileChunkContext context) {
         Assert.notBlank(context.getFilename(), "文件名称不能为空");
         Assert.notBlank(context.getIdentifier(), "文件唯一标识不能为空");
-        Assert.notNull(context.getTotalSize(), "文件大小不能为空");
+        Assert.notNull(context.getTotalSize(), "文件总大小不能为空");
         Assert.notNull(context.getInputStream(), "文件输入流不能为空");
         Assert.notNull(context.getTotalChunks(), "文件分片总数不能为空");
         Assert.notNull(context.getChunkNumber(), "文件分片下标不能为空");
