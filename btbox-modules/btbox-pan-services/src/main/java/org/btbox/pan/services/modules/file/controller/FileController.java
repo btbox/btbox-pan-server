@@ -18,6 +18,7 @@ import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.*;
 import org.btbox.pan.services.modules.file.domain.context.*;
+import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.springframework.validation.annotation.Validated;
@@ -110,7 +111,15 @@ public class FileController {
     public R<Void> upload(@Validated @RequestBody FileUploadBO fileUploadBO) {
         FileUploadContext context = fileConvert.fileUploadBO2FileUploadContext(fileUploadBO);
         userFileService.upload(context);
-        return R.fail("文件唯一标识不存在，请手动执行文件上传的操作");
+        return R.ok();
+    }
+
+    @Schema(title = "文件分片上传", description = "该接口提供了文件分片上传的功能")
+    @PostMapping("chunk-upload")
+    public R<FileChunkUploadVO> chunkUpload(@Validated @RequestBody FileChunkUploadBO fileChunkUploadBO) {
+        FileChunkUploadContext context = fileConvert.fileChunkUploadBO2FileChunkUploadContext(fileChunkUploadBO);
+        FileChunkUploadVO fileChunkUploadVO = userFileService.chunkUpload(context);
+        return R.ok(fileChunkUploadVO);
     }
 
 }

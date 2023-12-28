@@ -22,8 +22,10 @@ import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
+import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.repository.mapper.UserFileMapper;
+import org.btbox.pan.services.modules.file.service.PanFileChunkService;
 import org.btbox.pan.services.modules.file.service.PanFileService;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.springframework.context.ApplicationContext;
@@ -49,6 +51,8 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     private final PanFileService panFileService;
 
     private final FileConvert fileConvert;
+
+    private final PanFileChunkService panFileChunkService;
 
     @Override
     public Long createFolder(CreateFolderContext createFolderContext) {
@@ -149,6 +153,23 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
                 context.getUserId(),
                 context.getRecord().getFileSizeDesc()
         );
+    }
+
+    /**
+     * 文件分片上传
+     * 1. 上传实体文件
+     * 2. 保存分片文件记录
+     * 3. 校验是否全部分片上传完成
+     * @param context
+     * @return
+     */
+    @Override
+    public FileChunkUploadVO chunkUpload(FileChunkUploadContext context) {
+        FileChunkSaveContext fileChunkSaveContext = fileConvert.fileChunkUploadContext2FileChunkSaveContext(context);
+        panFileChunkService.saveChunkFile(fileChunkSaveContext);
+        FileChunkUploadVO vo = new FileChunkUploadVO();
+        vo.setMergeFlag(fileChunkSaveContext.getMergeFlagEnum().getCode());
+        return vo;
     }
 
     /**

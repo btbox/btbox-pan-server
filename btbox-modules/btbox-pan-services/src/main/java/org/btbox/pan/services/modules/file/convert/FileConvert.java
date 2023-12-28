@@ -4,6 +4,7 @@ import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.satoken.utils.LoginHelper;
 import org.btbox.pan.services.modules.file.domain.bo.*;
 import org.btbox.pan.services.modules.file.domain.context.*;
+import org.btbox.pan.storage.engine.core.context.StoreFileChunkContext;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -39,5 +40,13 @@ public interface FileConvert {
 
     @Mapping(target = "record", ignore = true)
     FileSaveContext fileUploadContext2FileSaveContext(FileUploadContext context);
+
+    @Mapping(target = "userId", expression = "java(LoginHelper.getUserId())")
+    FileChunkUploadContext fileChunkUploadBO2FileChunkUploadContext(FileChunkUploadBO fileChunkUploadBO);
+
+    FileChunkSaveContext fileChunkUploadContext2FileChunkSaveContext(FileChunkUploadContext context);
+
+    @Mapping(target = "realPath", ignore = true)
+    StoreFileChunkContext fileChunkSaveContext2StoreFileChunkContext(FileChunkSaveContext context);
 
 }

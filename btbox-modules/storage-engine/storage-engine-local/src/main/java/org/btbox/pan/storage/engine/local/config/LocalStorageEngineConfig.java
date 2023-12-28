@@ -18,4 +18,5 @@ public class LocalStorageEngineConfig {
 
     private String rootFilePath = FileUtils.generateDefaultStoreFileRealPath();
 
+    private String rootFileChunkPath = FileUtils.generateDefaultStoreFileChunkRealPath();
 }

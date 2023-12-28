@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.utils.file.FileUtils;
 import org.btbox.pan.storage.engine.core.AbstractStorageEngine;
 import org.btbox.pan.storage.engine.core.context.DeleteFileContext;
+import org.btbox.pan.storage.engine.core.context.StoreFileChunkContext;
 import org.btbox.pan.storage.engine.core.context.StoreFileContext;
 import org.btbox.pan.storage.engine.local.config.LocalStorageEngineConfig;
 import org.springframework.stereotype.Component;
@@ -34,8 +35,23 @@ public class LocalStorageEngine extends AbstractStorageEngine {
         String basePath = config.getRootFilePath();
         String realFilePath = FileUtils.generateStoreFileRealPath(basePath, context.getFilename());
         FileUtils.writeStream2File(context.getInputStream(), new File(realFilePath), context.getTotalSize());
+        context.setRealPath(realFilePath);
     }
 
+
+    /**
+     * 执行保存文件分片
+     * 下沉到底层去实现
+     *
+     * @param context
+     */
+    @Override
+    protected void doStoreChunk(StoreFileChunkContext context) throws IOException {
+        String basePath = config.getRootFileChunkPath();
+        String realFilePath = FileUtils.generateStoreFileChunkRealPath(basePath, context.getIdentifier(), context.getChunkNumber());
+        FileUtils.writeStream2File(context.getInputStream(), new File(realFilePath), context.getTotalSize());
+        context.setRealPath(realFilePath);
+    }
 
     /**
      * 执行删除物理文件的动作

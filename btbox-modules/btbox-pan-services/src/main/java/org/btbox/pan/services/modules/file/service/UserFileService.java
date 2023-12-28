@@ -3,6 +3,7 @@ package org.btbox.pan.services.modules.file.service;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 
 import java.util.List;
@@ -86,4 +87,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: void
      */
     void upload(FileUploadContext context);
+
+    /**
+     * 文件分片上传
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/28 15:07
+     * @return: org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO
+     */
+    FileChunkUploadVO chunkUpload(FileChunkUploadContext context);
 }

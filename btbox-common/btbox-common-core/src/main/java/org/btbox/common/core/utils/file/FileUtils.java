@@ -141,4 +141,40 @@ public class FileUtils extends FileUtil {
                 File.separator +
                 "btbox-pan";
     }
+
+    /**
+     * 生成默认的文件分片的存储路径前缀
+     * @return
+     */
+    public static String generateDefaultStoreFileChunkRealPath() {
+        return System.getProperty("user.home") +
+                File.separator +
+                "btbox-pan" +
+                File.separator +
+                "chunks";
+    }
+
+    /**
+     * 生成文件分片的存储路径
+     * 生成规则：基础路径 + 年 + 月 + 唯一标识 + 随机文件名称 + __,__ + 文件分片的下标
+     * @param basePath
+     * @param identifier
+     * @param chunkNumber
+     * @return
+     */
+    public static String generateStoreFileChunkRealPath(String basePath, String identifier, Integer chunkNumber) {
+        return basePath +
+                File.separator +
+                DateUtil.thisYear() +
+                File.separator +
+                (DateUtil.thisMonth() + 1) +
+                File.separator +
+                DateUtil.thisDayOfMonth() +
+                File.separator +
+                identifier +
+                File.separator +
+                IdUtil.fastSimpleUUID() +
+                BtboxConstants.COMMON_SEPARATOR +
+                chunkNumber;
+    }
 }
