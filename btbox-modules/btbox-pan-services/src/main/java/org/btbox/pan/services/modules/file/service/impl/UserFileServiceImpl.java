@@ -21,8 +21,10 @@ import org.btbox.common.core.utils.file.FileUtils;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
+import org.btbox.pan.services.modules.file.domain.entity.PanFileChunk;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
+import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.repository.mapper.UserFileMapper;
 import org.btbox.pan.services.modules.file.service.PanFileChunkService;
@@ -32,6 +34,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -169,6 +172,31 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         panFileChunkService.saveChunkFile(fileChunkSaveContext);
         FileChunkUploadVO vo = new FileChunkUploadVO();
         vo.setMergeFlag(fileChunkSaveContext.getMergeFlagEnum().getCode());
+        return vo;
+    }
+
+    /**
+     * 查询用户已上传的分片列表
+     * 1. 查询以上传的分片列表
+     * 2. 封装返回实体
+     * @param context
+     * @author: BT-BOX(HJH)
+     * @version: 1.0
+     * @createDate: 2023/12/28 16:30
+     * @return: org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO
+     */
+    @Override
+    public UploadedChunksVO getUploadedChunks(QueryUploadedChunksContext context) {
+        LambdaQueryWrapper<PanFileChunk> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(PanFileChunk::getChunkNumber);
+        queryWrapper.eq(PanFileChunk::getIdentifier, context.getIdentifier());
+        queryWrapper.eq(PanFileChunk::getCreateUser, context.getUserId());
+        queryWrapper.gt(PanFileChunk::getExpirationTime, new Date());
+
+        List<Integer> uploadedChunks = panFileChunkService.listObjs(queryWrapper, value -> (Integer) value);
+
+        UploadedChunksVO vo = new UploadedChunksVO();
+        vo.setUploadedChunks(uploadedChunks);
         return vo;
     }
 

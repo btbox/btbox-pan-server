@@ -1,15 +1,19 @@
 package org.btbox.pan.services.modules.file;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ObjectUtil;
 import com.google.common.collect.Lists;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
-import org.btbox.pan.services.modules.file.domain.entity.UserFile;
+import org.btbox.pan.services.modules.file.domain.entity.PanFileChunk;
+import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.file.service.PanFileChunkService;
 import org.btbox.pan.services.modules.file.service.PanFileService;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.user.domain.context.UserRegisterContext;
@@ -46,6 +50,9 @@ public class FileTest {
 
     @Autowired
     private PanFileService panFileService;
+
+    @Autowired
+    private PanFileChunkService panFileChunkService;
 
     /**
      * 测试用户查询文件列表成功
@@ -269,6 +276,36 @@ public class FileTest {
         List<UserFileVO> fileList = userFileService.getFileList(queryFileListContext);
         Assert.notEmpty(fileList);
         Assert.isTrue(fileList.size() == 1);
+    }
+
+    /**
+     * 测试查询用户已上传的文件分片信息列表成功
+     */
+    @Test
+    public void testQueryUploadedChunksSuccess() {
+        Long userId = register();
+
+        String identifier = "123456789";
+
+        PanFileChunk record = new PanFileChunk();
+        record.setId(IdUtil.get());
+        record.setIdentifier(identifier);
+        record.setRealPath("realPath");
+        record.setChunkNumber(1);
+        record.setExpirationTime(DateUtil.offsetDay(new Date(), 1));
+        record.setCreateUser(userId);
+        record.setCreateTime(new Date());
+        boolean save = panFileChunkService.save(record);
+        Assert.isTrue(save);
+
+        QueryUploadedChunksContext context = new QueryUploadedChunksContext();
+        context.setIdentifier(identifier);
+        context.setUserId(userId);
+
+        UploadedChunksVO vo = userFileService.getUploadedChunks(context);
+        Assert.notNull(vo);
+        Assert.notEmpty(vo.getUploadedChunks());
+
     }
 
 

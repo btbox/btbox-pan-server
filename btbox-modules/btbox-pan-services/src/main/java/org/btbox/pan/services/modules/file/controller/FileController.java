@@ -19,6 +19,7 @@ import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.*;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
+import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.springframework.validation.annotation.Validated;
@@ -118,8 +119,16 @@ public class FileController {
     @PostMapping("chunk-upload")
     public R<FileChunkUploadVO> chunkUpload(@Validated @RequestBody FileChunkUploadBO fileChunkUploadBO) {
         FileChunkUploadContext context = fileConvert.fileChunkUploadBO2FileChunkUploadContext(fileChunkUploadBO);
-        FileChunkUploadVO fileChunkUploadVO = userFileService.chunkUpload(context);
-        return R.ok(fileChunkUploadVO);
+        FileChunkUploadVO vo = userFileService.chunkUpload(context);
+        return R.ok(vo);
+    }
+
+    @Schema(title = "查询已经上传的文件分片列表", description = "该接口提供了查询已经上传的文件分片列表的功能")
+    @GetMapping("get-uploaded-chunks")
+    public R<UploadedChunksVO> getUploadedChunks(@Validated QueryUploadedChunksBO queryUploadedChunksBO) {
+        QueryUploadedChunksContext context = fileConvert.queryUploadedChunksBO2QueryUploadedChunksContext(queryUploadedChunksBO);
+        UploadedChunksVO vo = userFileService.getUploadedChunks(context);
+        return R.ok(vo);
     }
 
 }

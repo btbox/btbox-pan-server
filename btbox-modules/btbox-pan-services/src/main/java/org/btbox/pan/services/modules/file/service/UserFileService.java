@@ -4,6 +4,7 @@ import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
+import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 
 import java.util.List;
@@ -97,4 +98,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO
      */
     FileChunkUploadVO chunkUpload(FileChunkUploadContext context);
+
+    /**
+     * 查询用户已上传的分片列表
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2023/12/28 16:30
+     * @return: org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO
+     */
+    UploadedChunksVO getUploadedChunks(QueryUploadedChunksContext context);
 }

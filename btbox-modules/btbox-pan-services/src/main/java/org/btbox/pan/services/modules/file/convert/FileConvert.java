@@ -49,4 +49,6 @@ public interface FileConvert {
     @Mapping(target = "realPath", ignore = true)
     StoreFileChunkContext fileChunkSaveContext2StoreFileChunkContext(FileChunkSaveContext context);
 
+    @Mapping(target = "userId", expression = "java(LoginHelper.getUserId())")
+    QueryUploadedChunksContext queryUploadedChunksBO2QueryUploadedChunksContext(QueryUploadedChunksBO queryUploadedChunksBO);
 }
