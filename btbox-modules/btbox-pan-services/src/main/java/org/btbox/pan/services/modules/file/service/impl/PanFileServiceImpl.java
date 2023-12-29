@@ -15,11 +15,13 @@ import org.btbox.pan.services.modules.file.domain.entity.PanFileChunk;
 import org.btbox.pan.services.modules.file.service.PanFileChunkService;
 import org.btbox.pan.storage.engine.core.StorageEngine;
 import org.btbox.pan.storage.engine.core.context.DeleteFileContext;
+import org.btbox.pan.storage.engine.core.context.MergeFileContext;
 import org.btbox.pan.storage.engine.core.context.StoreFileContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,7 +95,25 @@ public class PanFileServiceImpl extends ServiceImpl<PanFileMapper, PanFile> impl
         if (CollUtil.isEmpty(chunkRecoredList)) {
             throw new ServiceException("该文件未找到分片记录");
         }
-        List<String> realPathList = chunkRecoredList.stream().map(PanFileChunk::getRealPath).collect(Collectors.toList());
+        List<String> realPathList = chunkRecoredList.stream()
+                .sorted(Comparator.comparing(PanFileChunk::getChunkNumber))
+                .map(PanFileChunk::getRealPath).collect(Collectors.toList());
+
+        try {
+            MergeFileContext mergeFileContext = new MergeFileContext();
+            mergeFileContext.setFilename(context.getFilename());
+            mergeFileContext.setIdentifier(context.getIdentifier());
+            mergeFileContext.setUserId(context.getUserId());
+            mergeFileContext.setRealPathList(realPathList);
+            storageEngine.mergeFile(mergeFileContext);
+            context.setRealPath(mergeFileContext.getRealPath());
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException("文件分片合并失败");
+        }
+
+        List<Long> fileChunkRecordIdList = chunkRecoredList.stream().map(PanFileChunk::getId).collect(Collectors.toList());
+        panFileChunkService.removeByIds(fileChunkRecordIdList);
 
     }
 

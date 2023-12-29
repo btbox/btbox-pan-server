@@ -2,6 +2,7 @@ package org.btbox.pan.storage.engine.core;
 
 import cn.hutool.core.lang.Assert;
 import org.btbox.pan.storage.engine.core.context.DeleteFileContext;
+import org.btbox.pan.storage.engine.core.context.MergeFileContext;
 import org.btbox.pan.storage.engine.core.context.StoreFileChunkContext;
 import org.btbox.pan.storage.engine.core.context.StoreFileContext;
 
@@ -45,6 +46,36 @@ public abstract class AbstractStorageEngine implements StorageEngine {
     public void storeChunk(StoreFileChunkContext context) throws IOException {
         checkStoreFileChunkContext(context);
         doStoreChunk(context);
+    }
+
+    /**
+     * 合并文件分片
+     *
+     * @param context
+     * @throws IOException
+     */
+    @Override
+    public void mergeFile(MergeFileContext context) throws IOException {
+        checkMergeFileContext(context);
+        doMergeFile(context);
+    }
+
+    /**
+     * 执行文件分片的动作
+     * 下沉到底层去实现
+     * @param context
+     */
+    protected abstract void doMergeFile(MergeFileContext context) throws IOException;
+
+    /**
+     * 校验文件分片合并的实体信息
+     * @param context
+     */
+    private void checkMergeFileContext(MergeFileContext context) {
+        Assert.notBlank(context.getFilename(), "文件名称不能为空");
+        Assert.notBlank(context.getIdentifier(), "文件唯一标识不能为空");
+        Assert.notNull(context.getUserId(), "当前登录的用户ID不能为空");
+        Assert.notNull(context.getRealPathList(), "文件分片列表不能为空");
     }
 
     /**

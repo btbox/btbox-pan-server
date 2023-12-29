@@ -2,6 +2,7 @@ package org.btbox.pan.storage.engine.oss;
 
 import org.btbox.pan.storage.engine.core.AbstractStorageEngine;
 import org.btbox.pan.storage.engine.core.context.DeleteFileContext;
+import org.btbox.pan.storage.engine.core.context.MergeFileContext;
 import org.btbox.pan.storage.engine.core.context.StoreFileChunkContext;
 import org.btbox.pan.storage.engine.core.context.StoreFileContext;
 import org.springframework.stereotype.Component;
@@ -46,6 +47,17 @@ public class OSSStorageEngine extends AbstractStorageEngine {
      */
     @Override
     protected void doStore(StoreFileContext context) throws IOException {
+
+    }
+
+    /**
+     * 执行文件分片的动作
+     * 下沉到底层去实现
+     *
+     * @param context
+     */
+    @Override
+    protected void doMergeFile(MergeFileContext context) throws IOException {
 
     }
 }

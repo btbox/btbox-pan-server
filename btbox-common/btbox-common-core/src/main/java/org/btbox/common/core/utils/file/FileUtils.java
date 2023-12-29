@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.utils.DateUtils;
+import org.btbox.common.core.utils.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +22,9 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 /**
@@ -82,6 +86,19 @@ public class FileUtils extends FileUtil {
     }
 
     /**
+     * 获取文件的后缀
+     *
+     * @param filename
+     * @return
+     */
+    public static String getFileSuffix(String filename) {
+        if (StringUtils.isBlank(filename) || filename.lastIndexOf(BtboxConstants.POINT_STR) == BtboxConstants.MINUS_ONE_INT) {
+            return BtboxConstants.EMPTY_STR;
+        }
+        return filename.substring(filename.lastIndexOf(BtboxConstants.POINT_STR)).toLowerCase();
+    }
+
+    /**
      * 生成文件的存储路径
      * 生成规则：基础路径 + 年 + 月 + 日 + 随机的文件名称
      * @param basePath
@@ -97,7 +114,8 @@ public class FileUtils extends FileUtil {
                 File.separator +
                 DateUtil.thisDayOfMonth() +
                 File.separator +
-                IdUtil.fastSimpleUUID();
+                IdUtil.fastSimpleUUID() +
+                getFileSuffix(filename);
     }
 
     /**
@@ -176,5 +194,14 @@ public class FileUtils extends FileUtil {
                 IdUtil.fastSimpleUUID() +
                 BtboxConstants.COMMON_SEPARATOR +
                 chunkNumber;
+    }
+
+    /**
+     * 追加写文件
+     * @param target
+     * @param source
+     */
+    public static void appendWrite(Path target, Path source) throws IOException {
+        Files.write(target, Files.readAllBytes(source), StandardOpenOption.APPEND);
     }
 }

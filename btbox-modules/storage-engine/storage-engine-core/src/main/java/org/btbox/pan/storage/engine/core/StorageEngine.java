@@ -1,6 +1,7 @@
 package org.btbox.pan.storage.engine.core;
 
 import org.btbox.pan.storage.engine.core.context.DeleteFileContext;
+import org.btbox.pan.storage.engine.core.context.MergeFileContext;
 import org.btbox.pan.storage.engine.core.context.StoreFileChunkContext;
 import org.btbox.pan.storage.engine.core.context.StoreFileContext;
 
@@ -34,4 +35,11 @@ public interface StorageEngine {
      * @throws IOException
      */
     void storeChunk(StoreFileChunkContext context) throws IOException;
+
+    /**
+     * 合并文件分片
+     * @param context
+     * @throws IOException
+     */
+    void mergeFile(MergeFileContext context) throws IOException;
 }
