@@ -153,4 +153,15 @@ public class FileController {
         userFileService.download(context);
     }
 
+    @Schema(title = "文件预览", description = "该接口提供了文件预览的功能")
+    @GetMapping("preview")
+    public void preview(@NotBlank(message = "文件ID不能为空") String fileId, HttpServletResponse response
+    ) {
+        FilePreviewContext context = new FilePreviewContext();
+        context.setFileId(IdUtil.decrypt(fileId));
+        context.setUserId(LoginHelper.getUserId());
+        context.setResponse(response);
+        userFileService.preview(context);
+    }
+
 }

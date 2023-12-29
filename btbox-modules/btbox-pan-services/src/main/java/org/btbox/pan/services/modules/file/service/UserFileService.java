@@ -120,4 +120,10 @@ public interface UserFileService extends IService<UserFile> {
      * @param context
      */
     void download(FileDownloadContext context);
+
+    /**
+     * 文件预览
+     * @param context
+     */
+    void preview(FilePreviewContext context);
 }
