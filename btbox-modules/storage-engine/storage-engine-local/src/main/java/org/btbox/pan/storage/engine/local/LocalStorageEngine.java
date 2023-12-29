@@ -3,14 +3,12 @@ package org.btbox.pan.storage.engine.local;
 import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.utils.file.FileUtils;
 import org.btbox.pan.storage.engine.core.AbstractStorageEngine;
-import org.btbox.pan.storage.engine.core.context.DeleteFileContext;
-import org.btbox.pan.storage.engine.core.context.MergeFileContext;
-import org.btbox.pan.storage.engine.core.context.StoreFileChunkContext;
-import org.btbox.pan.storage.engine.core.context.StoreFileContext;
+import org.btbox.pan.storage.engine.core.context.*;
 import org.btbox.pan.storage.engine.local.config.LocalStorageEngineConfig;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
@@ -65,6 +63,12 @@ public class LocalStorageEngine extends AbstractStorageEngine {
     @Override
     protected void doDelete(DeleteFileContext context) throws IOException {
         FileUtils.deleteFiles(context.getRealFilePathList());
+    }
+
+    @Override
+    protected void doReadFile(ReadFileContext context) throws IOException {
+        File file = new File(context.getRealPath());
+        FileUtils.writeFile2OutputStream(new FileInputStream(file), context.getOutputStream(), file.length());
     }
 
     /**

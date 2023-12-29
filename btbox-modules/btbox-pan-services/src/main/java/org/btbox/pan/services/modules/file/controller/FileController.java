@@ -8,13 +8,16 @@ import cn.hutool.core.util.StrUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.constant.FileConstants;
 import org.btbox.common.core.domain.R;
+import org.btbox.common.core.domain.model.LoginUser;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.utils.IdUtil;
+import org.btbox.common.satoken.utils.LoginHelper;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.*;
 import org.btbox.pan.services.modules.file.domain.context.*;
@@ -137,6 +140,17 @@ public class FileController {
         FileChunkMergeContext context = fileConvert.fileChunkMergeBO2QueryFileChunkMergeContext(fileChunkMergeBO);
         userFileService.mergeFile(context);
         return R.ok();
+    }
+
+    @Schema(title = "文件分片合并", description = "该接口提供了文件分片合并的功能")
+    @GetMapping("download")
+    public void mergeFile(@NotBlank(message = "文件ID不能为空") String fileId, HttpServletResponse response
+    ) {
+        FileDownloadContext context = new FileDownloadContext();
+        context.setFileId(IdUtil.decrypt(fileId));
+        context.setUserId(LoginHelper.getUserId());
+        context.setResponse(response);
+        userFileService.download(context);
     }
 
 }

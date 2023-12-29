@@ -13,14 +13,12 @@ import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.utils.DateUtils;
 import org.btbox.common.core.utils.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -130,7 +128,7 @@ public class FileUtils extends FileUtil {
         RandomAccessFile randomAccessFile = new RandomAccessFile(targetFile, "rw");
         FileChannel outputChannel = randomAccessFile.getChannel();
         ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
-        outputChannel.transferFrom(inputChannel, 0L, totalSize);
+        outputChannel.transferFrom(inputChannel, BtboxConstants.ZERO_LONG, totalSize);
         inputChannel.close();
         outputChannel.close();
         randomAccessFile.close();
@@ -203,5 +201,22 @@ public class FileUtils extends FileUtil {
      */
     public static void appendWrite(Path target, Path source) throws IOException {
         Files.write(target, Files.readAllBytes(source), StandardOpenOption.APPEND);
+    }
+
+    /**
+     * 利用零拷贝技术读取文件内容并写入到文件的输出流中
+     * @param fileInputStream
+     * @param outputStream
+     * @param length
+     */
+    public static void writeFile2OutputStream(FileInputStream fileInputStream, OutputStream outputStream, long length) throws IOException {
+        FileChannel fileChannel = fileInputStream.getChannel();
+        WritableByteChannel writableByteChannel = Channels.newChannel(outputStream);
+        fileChannel.transferTo(BtboxConstants.ZERO_LONG, length, writableByteChannel);
+        outputStream.flush();
+        fileInputStream.close();
+        outputStream.close();
+        fileChannel.close();
+        writableByteChannel.close();
     }
 }

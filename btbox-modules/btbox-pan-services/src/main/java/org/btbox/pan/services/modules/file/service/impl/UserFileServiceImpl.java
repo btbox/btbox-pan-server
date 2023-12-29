@@ -7,12 +7,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.constant.FileConstants;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.enums.FileTypeEnum;
 import org.btbox.common.core.enums.FolderFlagEnum;
+import org.btbox.common.core.utils.HttpUtil;
 import org.btbox.pan.services.common.event.file.DeleteFileEvent;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.MapstructUtils;
@@ -30,10 +32,15 @@ import org.btbox.pan.services.modules.file.repository.mapper.UserFileMapper;
 import org.btbox.pan.services.modules.file.service.PanFileChunkService;
 import org.btbox.pan.services.modules.file.service.PanFileService;
 import org.btbox.pan.services.modules.file.service.UserFileService;
+import org.btbox.pan.storage.engine.core.StorageEngine;
+import org.btbox.pan.storage.engine.core.context.ReadFileContext;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -56,6 +63,8 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     private final FileConvert fileConvert;
 
     private final PanFileChunkService panFileChunkService;
+
+    private final StorageEngine storageEngine;
 
     @Override
     public Long createFolder(CreateFolderContext createFolderContext) {
@@ -219,6 +228,117 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
                 context.getUserId(),
                 context.getRecord().getFileSizeDesc()
         );
+    }
+
+    /**
+     * 文件下载
+     * 1. 校验文件是否存在，文件是否属于该用户
+     * 2. 校验该文件是不是一个文件夹
+     * 3. 执行下载动作
+     * @param context
+     */
+    @Override
+    public void download(FileDownloadContext context) {
+        UserFile record = this.getById(context.getFileId());
+        checkOperatePermission(record, context.getUserId());
+        if (checkIsFolder(record)) {
+            throw new ServiceException("文件夹暂不支持下载");
+        }
+        doDownload(record, context.getResponse());
+    }
+
+    /**
+     * 执行文件下载的动作
+     * 1. 查询文件的真实存储路径
+     * 2. 添加跨域的公共响应头
+     * 3. 拼装下载文件的名称、长度等等响应信息
+     * 4. 委托文件存储引擎去读取文件内容到响应的输出流中
+     * @param record
+     * @param response
+     */
+    private void doDownload(UserFile record, HttpServletResponse response) {
+        PanFile realFileRecord = panFileService.getById(record.getRealFileId());
+        if (ObjectUtil.isEmpty(realFileRecord)) {
+            throw new ServiceException("当前文件记录不存在");
+        }
+        addCommonResponseHeader(response, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        addDownloadAttribute(response, record, realFileRecord);
+        realFile2OutStream(realFileRecord.getRealPath(), response);
+    }
+
+    /**
+     * 委托文件存储引擎去读取文件内容并写入到输出流中
+     * @param realPath
+     * @param response
+     */
+    private void realFile2OutStream(String realPath, HttpServletResponse response) {
+        try {
+            ReadFileContext context = new ReadFileContext();
+            context.setRealPath(realPath);
+            context.setOutputStream(response.getOutputStream());
+            storageEngine.readFile(context);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException("文件下载失败");
+        }
+    }
+
+    /**
+     * 添加公共的文件读取响应头
+     * @param response
+     * @param record
+     * @param realFileRecord
+     */
+    private void addDownloadAttribute(HttpServletResponse response, UserFile record, PanFile realFileRecord) {
+        try {
+            response.addHeader(
+                    FileConstants.CONTENT_DISPOSITION_STR,
+                    FileConstants.CONTENT_DISPOSITION_VALUE_PREFIX_STR + new String(record.getFilename().getBytes(FileConstants.GB2312_STR), FileConstants.IOS_8859_1_STR));
+        } catch (UnsupportedEncodingException e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException("文件下载失败");
+        }
+        response.setContentLengthLong(Long.parseLong(realFileRecord.getFileSize()));
+    }
+
+    /**
+     * 添加公共的文件读取响应头
+     * @param response
+     * @param contentTypeValue
+     */
+    private void addCommonResponseHeader(HttpServletResponse response, String contentTypeValue) {
+        response.reset();
+        HttpUtil.addCorsResponseHeaders(response);
+        response.addHeader(FileConstants.CONTENT_TYPE_STR, contentTypeValue);
+        response.setContentType(contentTypeValue);
+    }
+
+    /**
+     * 校验当前文件记录是不是一个文件夹
+     * @param record
+     * @return
+     */
+    private boolean checkIsFolder(UserFile record) {
+        if (ObjectUtil.isEmpty(record)) {
+            throw new ServiceException("当前文件记录不存在");
+        }
+        return FolderFlagEnum.YES.getCode().equals(record.getFolderFlag());
+    }
+
+    /**
+     * 校验用户操作权限
+     * 1. 文件记录必须存在
+     * 2. 文件记录的创建必须是当前登录的用户
+     * @param record
+     * @param userId
+     */
+    private void checkOperatePermission(UserFile record, Long userId) {
+        if (ObjectUtil.isEmpty(record)) {
+            throw new ServiceException("当前文件记录不存在");
+        }
+        if (!record.getUserId().equals(userId)) {
+            throw new ServiceException("您没有改文件的操作权限");
+        }
     }
 
     /**

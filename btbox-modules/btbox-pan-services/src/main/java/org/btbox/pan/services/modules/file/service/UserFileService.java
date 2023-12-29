@@ -114,4 +114,10 @@ public interface UserFileService extends IService<UserFile> {
      * @param context
      */
     void mergeFile(FileChunkMergeContext context);
+
+    /**
+     * 文件下载
+     * @param context
+     */
+    void download(FileDownloadContext context);
 }

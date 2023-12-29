@@ -1,9 +1,6 @@
 package org.btbox.pan.storage.engine.core;
 
-import org.btbox.pan.storage.engine.core.context.DeleteFileContext;
-import org.btbox.pan.storage.engine.core.context.MergeFileContext;
-import org.btbox.pan.storage.engine.core.context.StoreFileChunkContext;
-import org.btbox.pan.storage.engine.core.context.StoreFileContext;
+import org.btbox.pan.storage.engine.core.context.*;
 
 import java.io.IOException;
 
@@ -42,4 +39,11 @@ public interface StorageEngine {
      * @throws IOException
      */
     void mergeFile(MergeFileContext context) throws IOException;
+
+    /**
+     * 读取文件内容写入到输出流中
+     * @param context
+     * @throws IOException
+     */
+    void readFile(ReadFileContext context) throws IOException;
 }
