@@ -22,6 +22,7 @@ import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.*;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
+import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
 import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
@@ -162,6 +163,15 @@ public class FileController {
         context.setUserId(LoginHelper.getUserId());
         context.setResponse(response);
         userFileService.preview(context);
+    }
+
+    @Schema(title = "查询文件夹树", description = "该接口提供了查询文件夹树的功能")
+    @GetMapping("folder/tree")
+    public R<List<FolderTreeNodeVO>> getFolderTree() {
+        QueryFolderTreeContext context = new QueryFolderTreeContext();
+        context.setUserId(LoginHelper.getUserId());
+        List<FolderTreeNodeVO> vo = userFileService.getFolderTree(context);
+        return R.ok(vo);
     }
 
 }

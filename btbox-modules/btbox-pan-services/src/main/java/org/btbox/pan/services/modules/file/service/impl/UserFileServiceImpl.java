@@ -26,6 +26,7 @@ import org.btbox.pan.services.modules.file.domain.entity.PanFile;
 import org.btbox.pan.services.modules.file.domain.entity.PanFileChunk;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
+import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
 import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.repository.mapper.UserFileMapper;
@@ -262,6 +263,16 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
             throw new ServiceException("文件夹暂不支持预览");
         }
         doPreview(record, context.getResponse());
+    }
+
+    /**
+     * 查询用户的文件夹树
+     * @param context
+     * @return
+     */
+    @Override
+    public List<FolderTreeNodeVO> getFolderTree(QueryFolderTreeContext context) {
+        return null;
     }
 
     /**

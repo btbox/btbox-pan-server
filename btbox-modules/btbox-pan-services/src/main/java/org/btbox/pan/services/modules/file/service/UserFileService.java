@@ -4,6 +4,7 @@ import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
+import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
 import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 
@@ -126,4 +127,11 @@ public interface UserFileService extends IService<UserFile> {
      * @param context
      */
     void preview(FilePreviewContext context);
+
+    /**
+     * 查询用户的文件夹树
+     * @param context
+     * @return
+     */
+    List<FolderTreeNodeVO> getFolderTree(QueryFolderTreeContext context);
 }
