@@ -1,6 +1,7 @@
 package org.btbox.pan.services.modules.file.domain.vo;
 
 import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,6 +10,7 @@ import org.btbox.common.json.utils.JsonUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @description: 文件夹树节点实体
@@ -33,8 +35,12 @@ public class FolderTreeNodeVO implements Serializable {
     @JsonSerialize(using = IdEncryptSerializer.class)
     private Long parentId;
 
+    @Schema(title = "子节点集合")
+    private List<FolderTreeNodeVO> children;
+
     public void print() {
-        String jsonString = JsonUtils.toJsonString(this);
+
+        String jsonString = JSONUtil.toJsonStr(this);
         System.out.println("jsonString = " + jsonString);
     }
 }

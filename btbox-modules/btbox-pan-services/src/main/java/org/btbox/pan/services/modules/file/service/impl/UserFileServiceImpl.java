@@ -3,18 +3,21 @@ package org.btbox.pan.services.modules.file.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.assertj.core.util.Lists;
 import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.constant.FileConstants;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.enums.FileTypeEnum;
 import org.btbox.common.core.enums.FolderFlagEnum;
 import org.btbox.common.core.utils.HttpUtil;
+import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.common.event.file.DeleteFileEvent;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.MapstructUtils;
@@ -44,6 +47,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -267,12 +271,49 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
 
     /**
      * 查询用户的文件夹树
+     * 1. 查询出该用户的所有文件夹列表
+     * 2. 在内存中拼装文件夹树
      * @param context
      * @return
      */
     @Override
     public List<FolderTreeNodeVO> getFolderTree(QueryFolderTreeContext context) {
-        return null;
+        List<UserFile> folderRecords = queryFolderRecords(context.getUserId());
+        List<FolderTreeNodeVO> result = assembleFolderTreeNodeVOList(folderRecords);
+        return result;
+    }
+
+    /**
+     * 在内存中拼装文件夹树
+     * @param folderRecords
+     * @return
+     */
+    private List<FolderTreeNodeVO> assembleFolderTreeNodeVOList(List<UserFile> folderRecords) {
+        if (CollUtil.isEmpty(folderRecords)) {
+            return Lists.newArrayList();
+        }
+        List<FolderTreeNodeVO> mappedFolderTreeNodeVOList = folderRecords.stream().map(fileConvert::userFile2FolderTreeNodeVO).toList();
+        Map<Long, List<FolderTreeNodeVO>> mappedFolderTreeNodeVOMap = mappedFolderTreeNodeVOList.stream().collect(Collectors.groupingBy(FolderTreeNodeVO::getParentId));
+
+        for (FolderTreeNodeVO node : mappedFolderTreeNodeVOList) {
+            List<FolderTreeNodeVO> children = mappedFolderTreeNodeVOMap.get(node.getId());
+            if (CollUtil.isNotEmpty(children)) {
+                node.getChildren().addAll(children);
+            }
+        }
+        return mappedFolderTreeNodeVOList.stream().filter(node -> ObjectUtil.equals(node.getParentId(), FileConstants.TOP_PARENT_ID)).collect(Collectors.toList());
+    }
+
+    /**
+     * 查询出该用户的所有文件夹列表
+     * @param userId
+     * @return
+     */
+    private List<UserFile> queryFolderRecords(Long userId) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getUserId, userId);
+        queryWrapper.eq(UserFile::getFolderFlag, FolderFlagEnum.YES.getCode());
+        return this.list(queryWrapper);
     }
 
     /**
@@ -581,7 +622,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
      */
     private UserFile assembleUserFile(Long parentId, Long userId, String filename, FolderFlagEnum folderFlagEnum, Integer fileType, Long realFileId, String fileSizeDesc) {
         UserFile entity = new UserFile();
-        entity.setFileId(IdWorker.getId());
+        entity.setFileId(IdUtil.get());
         entity.setUserId(userId);
         entity.setParentId(parentId);
         entity.setRealFileId(realFileId);

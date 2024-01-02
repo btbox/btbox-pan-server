@@ -14,6 +14,7 @@ import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
 import org.btbox.pan.services.modules.file.domain.entity.PanFileChunk;
 import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
+import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
 import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.PanFileChunkService;
@@ -325,6 +326,39 @@ public class FileTest {
             new ChunkUploader(countDownLatch, i + 1, 10, userFileService, userId, userInfoVO.getRootFileId()).start();
         }
         countDownLatch.await();
+    }
+
+    @Test
+    public void testGetFolderTreeNodeVOListTest() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name-1");
+
+        Long fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
+
+        context.setFolderName("folder-name-2");
+        context.setParentId(fileId);
+
+        fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
+
+        context.setFolderName("folder-name-2-1");
+        context.setParentId(fileId);
+
+        fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
+
+        QueryFolderTreeContext queryFolderTreeContext = new QueryFolderTreeContext();
+        queryFolderTreeContext.setUserId(userId);
+        List<FolderTreeNodeVO> folderTree = userFileService.getFolderTree(queryFolderTreeContext);
+        Assert.isTrue(folderTree.size() == 1);
+        folderTree.forEach(FolderTreeNodeVO::print);
+
     }
 
 
