@@ -17,6 +17,7 @@ import org.btbox.common.core.domain.R;
 import org.btbox.common.core.domain.model.LoginUser;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.utils.IdUtil;
+import org.btbox.common.core.utils.StringUtils;
 import org.btbox.common.satoken.utils.LoginHelper;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.*;
@@ -29,6 +30,7 @@ import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -172,6 +174,20 @@ public class FileController {
         context.setUserId(LoginHelper.getUserId());
         List<FolderTreeNodeVO> vo = userFileService.getFolderTree(context);
         return R.ok(vo);
+    }
+
+    @Schema(title = "文件转移", description = "该接口提供了文件转移的功能")
+    @PostMapping("transfer")
+    public R<Void> transfer(@Validated @RequestBody TransferFileBO transferFileBO) {
+        String fileIds = transferFileBO.getFileIds();
+        String targetParentId = transferFileBO.getTargetParentId();
+        List<Long> fileIdList = Arrays.stream(StringUtils.split(BtboxConstants.COMMON_SEPARATOR, fileIds)).map(IdUtil::decrypt).toList();
+        TransferFileContext context = new TransferFileContext();
+        context.setFileIdList(fileIdList);
+        context.setTargetParentId(IdUtil.decrypt(targetParentId));
+        context.setUserId(LoginHelper.getUserId());
+        userFileService.transfer(context);
+        return R.ok();
     }
 
 }

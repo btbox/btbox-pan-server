@@ -134,4 +134,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return
      */
     List<FolderTreeNodeVO> getFolderTree(QueryFolderTreeContext context);
+
+    /**
+     * 文件转移
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2024/1/2 11:11
+     * @return: void
+     */
+    void transfer(TransferFileContext context);
 }

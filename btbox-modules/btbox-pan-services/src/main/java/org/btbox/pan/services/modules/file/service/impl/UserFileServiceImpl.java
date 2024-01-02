@@ -45,10 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -281,6 +278,94 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         List<UserFile> folderRecords = queryFolderRecords(context.getUserId());
         List<FolderTreeNodeVO> result = assembleFolderTreeNodeVOList(folderRecords);
         return result;
+    }
+
+    /**
+     * 文件转移
+     * 1. 权限校验
+     * 2. 执行转移
+     * @param context
+     */
+    @Override
+    public void transfer(TransferFileContext context) {
+        checkTransferCondition(context);
+        doTransfer(context);
+    }
+
+    /**
+     * 执行文件转移
+     * @param context
+     */
+    private void doTransfer(TransferFileContext context) {
+        List<UserFile> prepareRecords = context.getPrepareRecords();
+        prepareRecords.forEach(record -> {
+            record.setParentId(context.getTargetParentId());
+            record.setUserId(context.getUserId());
+            record.setCreateUser(context.getUserId());
+            record.setUpdateUser(context.getUserId());
+        });
+        if (!this.updateBatchById(prepareRecords)) {
+            throw new ServiceException("文件转移失败");
+        }
+    }
+
+    /**
+     * 文件转移条件校验
+     *
+     * @param context
+     */
+    private void checkTransferCondition(TransferFileContext context) {
+        Long targetParentId = context.getTargetParentId();
+        if (!checkIsFolder(this.getById(targetParentId))) {
+            throw new ServiceException("目标文件不是一个文件夹");
+        }
+        List<Long> fileIdList = context.getFileIdList();
+        List<UserFile> prepareRecords = this.listByIds(fileIdList);
+        context.setPrepareRecords(prepareRecords);
+        if (checkIsChildFolder(prepareRecords, targetParentId, context.getUserId())) {
+            throw new ServiceException("目标文件夹ID不能是选中文件列表的文件夹ID或者子文件夹ID");
+        }
+    }
+
+    /**
+     * 校验目标文件夹id是都是要操作的文件夹记录的文件夹ID以及其子文件夹ID
+     * 1. 如果要操作的文件列表中没有文件夹，那就直接返回false
+     * 2. 拼装文件夹ID以及所有子文件夹ID，判断存即可
+     * @param prepareRecords
+     * @param targetParentId
+     * @param userId
+     * @return
+     */
+    private boolean checkIsChildFolder(List<UserFile> prepareRecords, Long targetParentId, Long userId) {
+        prepareRecords = prepareRecords.stream().filter(record -> ObjectUtil.equals(record.getFolderFlag(), FolderFlagEnum.YES.getCode())).collect(Collectors.toList());
+        if (CollUtil.isEmpty(prepareRecords)) {
+            return false;
+        }
+        List<UserFile> folderRecords = queryFolderRecords(userId);
+        Map<Long, List<UserFile>> folderRecordMap = folderRecords.stream().collect(Collectors.groupingBy(UserFile::getParentId));
+        List<UserFile> unavailableFolderRecords = Lists.newArrayList();
+        // unavailableFolderRecords.addAll(prepareRecords);
+        prepareRecords.forEach(record -> findAllChildFolderRecords(unavailableFolderRecords, folderRecordMap, record));
+        List<Long> unavailableFolderRecordIds = unavailableFolderRecords.stream().map(UserFile::getFileId).toList();
+        return unavailableFolderRecordIds.contains(targetParentId);
+    }
+
+    /**
+     * 查找文件夹的所有子文件夹记录
+     * @param unavailableFolderRecords
+     * @param folderRecordMap
+     * @param record
+     */
+    private void findAllChildFolderRecords(List<UserFile> unavailableFolderRecords, Map<Long, List<UserFile>> folderRecordMap, UserFile record) {
+        if (ObjectUtil.isEmpty(record)) {
+            return;
+        }
+        List<UserFile> childFolderRecords = folderRecordMap.get(record.getFileId());
+        if (CollUtil.isEmpty(childFolderRecords)) {
+            return;
+        }
+        unavailableFolderRecords.addAll(childFolderRecords);
+        childFolderRecords.forEach(childRecord -> findAllChildFolderRecords(unavailableFolderRecords, folderRecordMap, childRecord));
     }
 
     /**
