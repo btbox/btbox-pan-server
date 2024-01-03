@@ -198,7 +198,11 @@ public class OSSStorageEngine extends AbstractStorageEngine {
 
     @Override
     protected void doReadFile(ReadFileContext context) throws IOException {
-
+        OSSObject ossObject = client.getObject(config.getBucketName(), context.getRealPath());
+        if (ObjectUtil.isNull(ossObject)) {
+            throw new ServerException("文件读取失败，文件的名称为：" + context.getRealPath());
+        }
+        FileUtils.writeStream2StreamNormal(ossObject.getObjectContent(), context.getOutputStream());
     }
 
     /**
@@ -320,7 +324,7 @@ public class OSSStorageEngine extends AbstractStorageEngine {
      * @return
      */
     private boolean checkHaveParams(String url) {
-        return StringUtils.isNotBlank(url) && url.indexOf(BtboxConstants.QUESTION_MARK_STR) != RPanConstants.MINUS_ONE_INT;
+        return StringUtils.isNotBlank(url) && url.indexOf(BtboxConstants.QUESTION_MARK_STR) != BtboxConstants.MINUS_ONE_INT;
     }
 
     /**
