@@ -16,6 +16,14 @@
             <groupId>org.btbox</groupId>
             <artifactId>btbox-pan-storage-engine-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.btbox</groupId>
+            <artifactId>btbox-common-redis</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

@@ -65,6 +65,7 @@
         <!-- xjar代码混淆 https://github.com/core-lib/xjar -->
         <xjar.version>4.0.2</xjar.version>
         <truelicense.version>1.33</truelicense.version>
+        <aliyun-oss.version>3.17.4</aliyun-oss.version>
     </properties>
 
     <profiles>
@@ -365,6 +366,12 @@
                 <groupId>de.schlichtherle.truelicense</groupId>
                 <artifactId>truelicense-core</artifactId>
                 <version>${truelicense.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun-oss.version}</version>
             </dependency>
 
             <dependency>
