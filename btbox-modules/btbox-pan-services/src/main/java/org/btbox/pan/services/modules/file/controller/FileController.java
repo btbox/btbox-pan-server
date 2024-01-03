@@ -22,10 +22,7 @@ import org.btbox.common.satoken.utils.LoginHelper;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.bo.*;
 import org.btbox.pan.services.modules.file.domain.context.*;
-import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
-import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
-import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
-import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.file.domain.vo.*;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -181,7 +178,7 @@ public class FileController {
     public R<Void> transfer(@Validated @RequestBody TransferFileBO transferFileBO) {
         String fileIds = transferFileBO.getFileIds();
         String targetParentId = transferFileBO.getTargetParentId();
-        List<Long> fileIdList = Arrays.stream(StringUtils.split(BtboxConstants.COMMON_SEPARATOR, fileIds)).map(IdUtil::decrypt).toList();
+        List<Long> fileIdList = Arrays.stream(StringUtils.split(fileIds, BtboxConstants.COMMON_SEPARATOR)).map(IdUtil::decrypt).toList();
         TransferFileContext context = new TransferFileContext();
         context.setFileIdList(fileIdList);
         context.setTargetParentId(IdUtil.decrypt(targetParentId));
@@ -195,13 +192,30 @@ public class FileController {
     public R<Void> transfer(@Validated @RequestBody CopyFileBO copyFileBO) {
         String fileIds = copyFileBO.getFileIds();
         String targetParentId = copyFileBO.getTargetParentId();
-        List<Long> fileIdList = Arrays.stream(StringUtils.split(BtboxConstants.COMMON_SEPARATOR, fileIds)).map(IdUtil::decrypt).toList();
+        List<Long> fileIdList = Arrays.stream(StringUtils.split(fileIds, BtboxConstants.COMMON_SEPARATOR)).map(IdUtil::decrypt).toList();
         CopyFileContext context = new CopyFileContext();
         context.setFileIdList(fileIdList);
         context.setTargetParentId(IdUtil.decrypt(targetParentId));
         context.setUserId(LoginHelper.getUserId());
         userFileService.copy(context);
         return R.ok();
+    }
+
+    @Schema(title = "文件搜索", description = "该接口提供了文件搜索的功能")
+    @PostMapping("search")
+    public R<List<FileSearchResultVO>> search(@Validated FileSearchBO fileSearchBO) {
+        FileSearchContext context = new FileSearchContext();
+        context.setKeyword(fileSearchBO.getKeyword());
+        context.setUserId(LoginHelper.getUserId());
+
+        String fileTypes = fileSearchBO.getFileTypes();
+        if (StringUtils.isNoneBlank(fileTypes) && !ObjectUtil.equals(FileConstants.ALL_FILE_TYPE, fileTypes)) {
+            List<Integer> fileTypeArray = Arrays.stream(StringUtils.split(fileTypes, BtboxConstants.COMMON_SEPARATOR)).map(Integer::valueOf).toList();
+            context.setFileTypeArray(fileTypeArray);
+        }
+
+        List<FileSearchResultVO> result = userFileService.search(context);
+        return R.ok(result);
     }
 
 }

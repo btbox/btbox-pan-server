@@ -3,10 +3,7 @@ package org.btbox.pan.services.modules.file.service;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
-import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
-import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
-import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.file.domain.vo.*;
 
 import java.util.List;
 
@@ -154,4 +151,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: void
      */
     void copy(CopyFileContext context);
+
+    /**
+     * 文件列表搜索
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2024/1/3 11:02
+     * @return: java.util.List<org.btbox.pan.services.modules.file.domain.vo.FileSearchResultVO>
+     */
+    List<FileSearchResultVO> search(FileSearchContext context);
 }

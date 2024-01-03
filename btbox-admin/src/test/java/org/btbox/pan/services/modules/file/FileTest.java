@@ -13,10 +13,7 @@ import org.btbox.common.core.utils.IdUtil;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
 import org.btbox.pan.services.modules.file.domain.entity.PanFileChunk;
-import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
-import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
-import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
-import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.file.domain.vo.*;
 import org.btbox.pan.services.modules.file.service.PanFileChunkService;
 import org.btbox.pan.services.modules.file.service.PanFileService;
 import org.btbox.pan.services.modules.file.service.UserFileService;
@@ -490,6 +487,33 @@ public class FileTest {
             copyFileContext.setUserId(userId);
             userFileService.copy(copyFileContext);
         });
+    }
+
+    /**
+     * 测试文件搜索成功
+     */
+    @Test
+    public void testSearchSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name-1");
+
+        Long folder1 = userFileService.createFolder(context);
+        Assert.notNull(folder1);
+
+        FileSearchContext fileSearchContext = new FileSearchContext();
+        fileSearchContext.setUserId(userId);
+        fileSearchContext.setKeyword("folder-name");
+        List<FileSearchResultVO> result = userFileService.search(fileSearchContext);
+        Assert.notEmpty(result);
+
+        fileSearchContext.setKeyword("name-1");
+        result = userFileService.search(fileSearchContext);
+        Assert.isTrue(CollUtil.isEmpty(result));
     }
 
 

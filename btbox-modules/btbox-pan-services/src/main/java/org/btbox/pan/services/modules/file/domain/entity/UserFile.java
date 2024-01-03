@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
 import lombok.Data;
+import org.btbox.pan.services.modules.file.domain.vo.FileSearchResultVO;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 
@@ -25,7 +26,11 @@ import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 @Schema(description="用户文件信息表")
 @Data
 @TableName(value = "btbox_pan_user_file")
-@AutoMapper(target = UserFileVO.class)
+@AutoMappers({
+        @AutoMapper(target = UserFileVO.class),
+        @AutoMapper(target = FileSearchResultVO.class)
+})
+
 public class UserFile {
     /**
      * 文件记录ID
@@ -113,7 +118,7 @@ public class UserFile {
     /**
      * 创建时间
      */
-    @TableField(value = "create_time")
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
     @Schema(description="创建时间")
     @NotNull(message = "创建时间不能为null")
     private Date createTime;
@@ -121,7 +126,7 @@ public class UserFile {
     /**
      * 更新人
      */
-    @TableField(value = "update_user")
+    @TableField(value = "update_user", fill = FieldFill.INSERT_UPDATE)
     @Schema(description="更新人")
     @NotNull(message = "更新人不能为null")
     private Long updateUser;
@@ -129,7 +134,7 @@ public class UserFile {
     /**
      * 更新时间
      */
-    @TableField(value = "update_time")
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     @Schema(description="更新时间")
     @NotNull(message = "更新时间不能为null")
     private Date updateTime;

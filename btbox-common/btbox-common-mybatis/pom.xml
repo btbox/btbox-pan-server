@@ -42,6 +42,11 @@
             <groupId>p6spy</groupId>
             <artifactId>p6spy</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.btbox</groupId>
+            <artifactId>btbox-common-satoken</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

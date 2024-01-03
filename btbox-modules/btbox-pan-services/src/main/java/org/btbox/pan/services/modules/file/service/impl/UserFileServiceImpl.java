@@ -23,15 +23,13 @@ import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.common.core.utils.MessageUtils;
 import org.btbox.common.core.utils.file.FileUtils;
+import org.btbox.pan.services.common.event.search.UserSearchEvent;
 import org.btbox.pan.services.modules.file.convert.FileConvert;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.PanFile;
 import org.btbox.pan.services.modules.file.domain.entity.PanFileChunk;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
-import org.btbox.pan.services.modules.file.domain.vo.FileChunkUploadVO;
-import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
-import org.btbox.pan.services.modules.file.domain.vo.UploadedChunksVO;
-import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.file.domain.vo.*;
 import org.btbox.pan.services.modules.file.repository.mapper.UserFileMapper;
 import org.btbox.pan.services.modules.file.service.PanFileChunkService;
 import org.btbox.pan.services.modules.file.service.PanFileService;
@@ -302,6 +300,62 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     public void copy(CopyFileContext context) {
         checkCopyCondition(context);
         doCopy(context);
+    }
+
+    /**
+     * 文件搜索
+     * 1. 执行文件搜索
+     * 2. 拼装文件的父文件夹名称
+     * 3. 执行文件搜索后的后置动作
+     * @param context
+     * @return
+     */
+    @Override
+    public List<FileSearchResultVO> search(FileSearchContext context) {
+        List<FileSearchResultVO> result = doSearch(context);
+        fillParentFilename(result);
+        afterSearch(context);
+        return result;
+    }
+
+    /**
+     * 搜索的后置操作
+     * 1. 发布文件搜索的事件
+     * @param context
+     */
+    private void afterSearch(FileSearchContext context) {
+        UserSearchEvent event = new UserSearchEvent(this, context.getKeyword(), context.getUserId());
+        applicationContext.publishEvent(event);
+    }
+
+    /**
+     * 填充文件列表的父文件名称
+     * @param result
+     */
+    private void fillParentFilename(List<FileSearchResultVO> result) {
+        if (CollUtil.isEmpty(result)) {
+            return;
+        }
+        List<Long> parentIdList = result.stream().map(FileSearchResultVO::getParentId).collect(Collectors.toList());
+        List<UserFile> parentRecords = this.listByIds(parentIdList);
+        Map<Long, String> fileId2FilenameMap = parentRecords.stream().collect(Collectors.toMap(UserFile::getFileId, UserFile::getFilename));
+
+        result.forEach(vo -> vo.setParentFilename(fileId2FilenameMap.get(vo.getParentId())));
+    }
+
+    /**
+     * 搜索文件列表
+     * @param context
+     * @return
+     */
+    private List<FileSearchResultVO> doSearch(FileSearchContext context) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(UserFile::getFileId, UserFile::getParentId, UserFile::getFilename, UserFile::getFileSizeDesc, UserFile::getFolderFlag, UserFile::getFileType, UserFile::getUpdateTime);
+        queryWrapper.eq(UserFile::getUserId, context.getUserId());
+
+        queryWrapper.likeRight(UserFile::getFilename, context.getKeyword());
+        queryWrapper.in(CollUtil.isNotEmpty(context.getFileTypeArray()), UserFile::getFileType, context.getFileTypeArray());
+        return MapstructUtils.convert(this.list(queryWrapper), FileSearchResultVO.class);
     }
 
     /**
