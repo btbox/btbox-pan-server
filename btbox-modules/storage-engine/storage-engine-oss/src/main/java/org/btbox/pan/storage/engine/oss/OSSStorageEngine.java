@@ -149,11 +149,38 @@ public class OSSStorageEngine extends AbstractStorageEngine {
      * 执行删除物理文件的动作
      * 下沉到具体的子类去实现
      *
+     * 1. 获取所有需要删除的文件存储路径
+     * 2. 如果该存储路径是一个文件分片的路径，取出对应的Object的name，然后取消文件分片的操作
+     * 3. 如果是一个正常的文件存储路径，直接执行物理删除
      * @param context
      */
     @Override
     protected void doDelete(DeleteFileContext context) throws IOException {
+        List<String> realFilePathList = context.getRealFilePathList();
+        realFilePathList.forEach(realPath -> {
+            // 文件分片的存储路径
+            if (checkHaveParams(realPath)) {
+                JSONObject params = analysisUrlParams(realPath);
+                if (ObjectUtil.isNotEmpty(params)) {
+                    String uploadId = params.getStr(UPLOAD_ID_KEY);
+                    String identifier = params.getStr(IDENTIFIER_KEY);
+                    Long userId = params.getLong(USER_ID_KEY);
+                    String cacheKey = getCacheKey(identifier, userId);
+                    RedisUtils.deleteObject(cacheKey);
 
+                    try {
+                        AbortMultipartUploadRequest request = new AbortMultipartUploadRequest(config.getBucketName(), getBaseUrl(realPath), uploadId);
+                        client.abortMultipartUpload(request);
+                    } catch (Exception e) {
+
+                    }
+                }
+            }
+            // 普通文件的物理删除
+            else {
+                client.deleteObject(config.getBucketName(), realPath);
+            }
+        });
     }
 
     /**
