@@ -190,4 +190,18 @@ public class FileController {
         return R.ok();
     }
 
+    @Schema(title = "文件复制", description = "该接口提供了文件复制的功能")
+    @PostMapping("copy")
+    public R<Void> transfer(@Validated @RequestBody CopyFileBO copyFileBO) {
+        String fileIds = copyFileBO.getFileIds();
+        String targetParentId = copyFileBO.getTargetParentId();
+        List<Long> fileIdList = Arrays.stream(StringUtils.split(BtboxConstants.COMMON_SEPARATOR, fileIds)).map(IdUtil::decrypt).toList();
+        CopyFileContext context = new CopyFileContext();
+        context.setFileIdList(fileIdList);
+        context.setTargetParentId(IdUtil.decrypt(targetParentId));
+        context.setUserId(LoginHelper.getUserId());
+        userFileService.copy(context);
+        return R.ok();
+    }
+
 }

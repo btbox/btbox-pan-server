@@ -293,6 +293,91 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     }
 
     /**
+     * 文件复制
+     * 1. 文件校验
+     * 2. 执行动作
+     * @param context
+     */
+    @Override
+    public void copy(CopyFileContext context) {
+        checkCopyCondition(context);
+        doCopy(context);
+    }
+
+    /**
+     * 执行文件复制的动作
+     * @param context
+     */
+    private void doCopy(CopyFileContext context) {
+        List<UserFile> prepareRecords = context.getPrepareRecords();
+        if (CollUtil.isNotEmpty(prepareRecords)) {
+            List<UserFile> allRecords = Lists.newArrayList();
+            prepareRecords.stream().forEach(record -> assembleCopyChildRecord(allRecords, record, context.getTargetParentId(), context.getUserId()));
+            if (!this.saveBatch(allRecords)) {
+                throw new ServiceException("文件复制失败");
+            }
+        }
+    }
+
+    /**
+     * 拼装 当前文件记录以及所有子文件记录
+     * @param allRecords
+     * @param record
+     * @param targetParentId
+     * @param userId
+     */
+    private void assembleCopyChildRecord(List<UserFile> allRecords, UserFile record, Long targetParentId, Long userId) {
+        Long newFileId = IdUtil.get();
+        Long oldFileId = record.getFileId();
+
+        record.setParentId(targetParentId);
+        record.setFileId(newFileId);
+        record.setUserId(userId);
+        record.setCreateUser(userId);
+        record.setUpdateUser(userId);
+        handleDuplicateFilename(record);
+
+        allRecords.add(record);
+
+        if (checkIsFolder(record)) {
+            List<UserFile> childRecords = findChildRecords(oldFileId);
+            if (CollUtil.isEmpty(childRecords)) {
+                return;
+            }
+            childRecords.stream().forEach(childRecord -> assembleCopyChildRecord(allRecords, childRecord, newFileId, userId));
+        }
+    }
+
+    /**
+     * 查找下一级的
+     * @param parentId
+     * @return
+     */
+    private List<UserFile> findChildRecords(Long parentId) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getParentId, parentId);
+        return this.list(queryWrapper);
+    }
+
+    /**
+     * 文件转移条件校验
+     *
+     * @param context
+     */
+    private void checkCopyCondition(CopyFileContext context) {
+        Long targetParentId = context.getTargetParentId();
+        if (!checkIsFolder(this.getById(targetParentId))) {
+            throw new ServiceException("目标文件不是一个文件夹");
+        }
+        List<Long> fileIdList = context.getFileIdList();
+        List<UserFile> prepareRecords = this.listByIds(fileIdList);
+        context.setPrepareRecords(prepareRecords);
+        if (checkIsChildFolder(prepareRecords, targetParentId, context.getUserId())) {
+            throw new ServiceException("目标文件夹ID不能是选中文件列表的文件夹ID或者子文件夹ID");
+        }
+    }
+
+    /**
      * 执行文件转移
      * @param context
      */
@@ -303,6 +388,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
             record.setUserId(context.getUserId());
             record.setCreateUser(context.getUserId());
             record.setUpdateUser(context.getUserId());
+            handleDuplicateFilename(record);
         });
         if (!this.updateBatchById(prepareRecords)) {
             throw new ServiceException("文件转移失败");
@@ -344,7 +430,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         List<UserFile> folderRecords = queryFolderRecords(userId);
         Map<Long, List<UserFile>> folderRecordMap = folderRecords.stream().collect(Collectors.groupingBy(UserFile::getParentId));
         List<UserFile> unavailableFolderRecords = Lists.newArrayList();
-        // unavailableFolderRecords.addAll(prepareRecords);
+        unavailableFolderRecords.addAll(prepareRecords);
         prepareRecords.forEach(record -> findAllChildFolderRecords(unavailableFolderRecords, folderRecordMap, record));
         List<Long> unavailableFolderRecordIds = unavailableFolderRecords.stream().map(UserFile::getFileId).toList();
         return unavailableFolderRecordIds.contains(targetParentId);

@@ -144,4 +144,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: void
      */
     void transfer(TransferFileContext context);
+
+    /**
+     * 文件复制
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2024/1/3 9:49
+     * @return: void
+     */
+    void copy(CopyFileContext context);
 }
