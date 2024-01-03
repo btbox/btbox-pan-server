@@ -178,7 +178,7 @@ public class FileController {
     public R<Void> transfer(@Validated @RequestBody TransferFileBO transferFileBO) {
         String fileIds = transferFileBO.getFileIds();
         String targetParentId = transferFileBO.getTargetParentId();
-        List<Long> fileIdList = Arrays.stream(StringUtils.split(fileIds, BtboxConstants.COMMON_SEPARATOR)).map(IdUtil::decrypt).toList();
+        List<Long> fileIdList = StringUtils.splitList(fileIds, BtboxConstants.COMMON_SEPARATOR).stream().map(IdUtil::decrypt).toList();
         TransferFileContext context = new TransferFileContext();
         context.setFileIdList(fileIdList);
         context.setTargetParentId(IdUtil.decrypt(targetParentId));
@@ -192,7 +192,7 @@ public class FileController {
     public R<Void> transfer(@Validated @RequestBody CopyFileBO copyFileBO) {
         String fileIds = copyFileBO.getFileIds();
         String targetParentId = copyFileBO.getTargetParentId();
-        List<Long> fileIdList = Arrays.stream(StringUtils.split(fileIds, BtboxConstants.COMMON_SEPARATOR)).map(IdUtil::decrypt).toList();
+        List<Long> fileIdList = StringUtils.splitList(fileIds, BtboxConstants.COMMON_SEPARATOR).stream().map(IdUtil::decrypt).toList();
         CopyFileContext context = new CopyFileContext();
         context.setFileIdList(fileIdList);
         context.setTargetParentId(IdUtil.decrypt(targetParentId));
@@ -210,7 +210,7 @@ public class FileController {
 
         String fileTypes = fileSearchBO.getFileTypes();
         if (StringUtils.isNoneBlank(fileTypes) && !ObjectUtil.equals(FileConstants.ALL_FILE_TYPE, fileTypes)) {
-            List<Integer> fileTypeArray = Arrays.stream(StringUtils.split(fileTypes, BtboxConstants.COMMON_SEPARATOR)).map(Integer::valueOf).toList();
+            List<Integer> fileTypeArray = StringUtils.splitList(fileTypes, BtboxConstants.COMMON_SEPARATOR).stream().map(Integer::valueOf).toList();
             context.setFileTypeArray(fileTypeArray);
         }
 

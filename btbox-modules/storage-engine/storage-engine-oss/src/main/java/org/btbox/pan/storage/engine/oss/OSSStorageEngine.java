@@ -1,5 +1,6 @@
 package org.btbox.pan.storage.engine.oss;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -29,6 +30,7 @@ import java.io.Serializable;
 import java.rmi.ServerException;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @description: 基于OSS的文件存储引擎实现
@@ -176,14 +178,72 @@ public class OSSStorageEngine extends AbstractStorageEngine {
      * 执行文件分片的动作
      * 下沉到底层去实现
      *
+     * 1. 获取缓存信息，拿到全局的uploadId
+     * 2. 从上下文信息里面获取所有的分片的URL，解析出需要执行文件合并请求的参数
+     * 3. 执行文件合并的请求
+     * 4. 清除缓存
+     * 5. 设置返回结果
      * @param context
      */
     @Override
     protected void doMergeFile(MergeFileContext context) throws IOException {
+        String cacheKey = getCacheKey(context.getIdentifier(), context.getUserId());
+        ChunkUploadEntity entity = RedisUtils.getCacheObject(cacheKey);
 
+        if (ObjectUtil.isNull(entity)) {
+            throw new ServerException("文件分片合并失败，文件的唯一标识为：" + context.getIdentifier());
+        }
+        List<String> chunkPaths = context.getRealPathList();
+        List<PartETag> partETags = CollUtil.newArrayList();
+
+        if (CollUtil.isNotEmpty(chunkPaths)) {
+            partETags = chunkPaths.stream()
+                    .filter(StringUtils::isNotBlank)
+                    .map(this::analysisUrlParams)
+                    .filter(ObjectUtil::isNotNull)
+                    .filter(jsonObject -> !jsonObject.isEmpty())
+                    .map(jsonObject -> new PartETag(jsonObject.getInt(PART_NUMBER_KEY),
+                            jsonObject.getStr(E_TAG_KEY),
+                            jsonObject.getLong(PART_SIZE_KEY),
+                            jsonObject.getLong(PART_CRC_KEY)
+                    )).collect(Collectors.toList());
+        }
+
+        CompleteMultipartUploadRequest request = new CompleteMultipartUploadRequest(config.getBucketName(), entity.getObjectKey(), entity.getUploadId(), partETags);
+        CompleteMultipartUploadResult result = client.completeMultipartUpload(request);
+
+        if (ObjectUtil.isNull(result)) {
+            throw new ServerException("文件分片合并失败，文件的唯一标识为：" + context.getIdentifier());
+        }
+        RedisUtils.deleteObject(cacheKey);
+        context.setRealPath(entity.getObjectKey());
     }
 
     /*************************************** private ****************************************/
+
+    /**
+     * 分析URL参数
+     *
+     * @param url
+     * @return
+     */
+    private JSONObject analysisUrlParams(String url) {
+        JSONObject result = new JSONObject();
+        if (!checkHaveParams(url)) {
+            return result;
+        }
+        String paramsPart = url.split(getSplitMark(BtboxConstants.QUESTION_MARK_STR))[1];
+        if (StringUtils.isNotBlank(paramsPart)) {
+            List<String> paramPairList = StringUtils.splitList(paramsPart, BtboxConstants.AND_MARK_STR);
+            paramPairList.stream().forEach(paramPair -> {
+                String[] paramArr = paramPair.split(getSplitMark(BtboxConstants.EQUALS_MARK_STR));
+                if (paramArr != null && paramArr.length == BtboxConstants.TWO_INT) {
+                    result.put(paramArr[0], paramArr[1]);
+                }
+            });
+        }
+        return result;
+    }
 
     /**
      * 拼装URL
