@@ -218,4 +218,14 @@ public class FileController {
         return R.ok(result);
     }
 
+    @Schema(title = "查询面包屑列表", description = "该接口提供了查询面包屑列表的功能")
+    @PostMapping("breadcrumbs")
+    public R<List<BreadcrumbVO>> getBreadcrumbs(@NotBlank(message = "文件ID不能为空") @RequestParam(required = false) String fileId) {
+        QueryBreadcrumbsContext context = new QueryBreadcrumbsContext();
+        context.setFileId(IdUtil.decrypt(fileId));
+        context.setUserId(LoginHelper.getUserId());
+        List<BreadcrumbVO> result = userFileService.getBreadcrumbs(context);
+        return R.ok(result);
+    }
+
 }

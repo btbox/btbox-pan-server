@@ -319,6 +319,34 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     }
 
     /**
+     * 获取面包屑列表
+     * 1. 获取用户所有文件夹信息
+     * 2. 拼接需要用到的面包屑列表
+     * @param context
+     * @return
+     */
+    @Override
+    public List<BreadcrumbVO> getBreadcrumbs(QueryBreadcrumbsContext context) {
+        List<UserFile> folderRecords = queryFolderRecords(context.getUserId());
+        Map<Long, BreadcrumbVO> prepareBreadcrumbVOMap = folderRecords.stream().map(BreadcrumbVO::transfer).collect(Collectors.toMap(BreadcrumbVO::getId, v -> v));
+
+        BreadcrumbVO currentNode;
+        Long fileId = context.getFileId();
+
+        List<BreadcrumbVO> result = CollUtil.newLinkedList();
+
+        do {
+            currentNode = prepareBreadcrumbVOMap.get(fileId);
+            if (ObjectUtil.isNotNull(currentNode)) {
+                result.add(0, currentNode);
+                fileId = currentNode.getParentId();
+            }
+        } while (ObjectUtil.isNotNull(currentNode));
+
+        return result;
+    }
+
+    /**
      * 搜索的后置操作
      * 1. 发布文件搜索的事件
      * @param context

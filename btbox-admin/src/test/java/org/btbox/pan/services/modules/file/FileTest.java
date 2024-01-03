@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import org.btbox.common.core.enums.DelFlagEnum;
@@ -514,6 +515,32 @@ public class FileTest {
         fileSearchContext.setKeyword("name-1");
         result = userFileService.search(fileSearchContext);
         Assert.isTrue(CollUtil.isEmpty(result));
+    }
+
+    /**
+     * 测试查询文件面包屑导航列表成功
+     */
+    @Test
+    public void testGetBreadcrumbsSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name-1");
+
+        Long folder1 = userFileService.createFolder(context);
+        Assert.notNull(folder1);
+
+        QueryBreadcrumbsContext queryBreadcrumbsContext = new QueryBreadcrumbsContext();
+        queryBreadcrumbsContext.setFileId(folder1);
+        queryBreadcrumbsContext.setUserId(userId);
+
+        List<BreadcrumbVO> result = userFileService.getBreadcrumbs(queryBreadcrumbsContext);
+        System.out.println(JSONUtil.toJsonStr(result));
+        Assert.notEmpty(result);
+        Assert.isTrue(result.size() == 2);
     }
 
 
