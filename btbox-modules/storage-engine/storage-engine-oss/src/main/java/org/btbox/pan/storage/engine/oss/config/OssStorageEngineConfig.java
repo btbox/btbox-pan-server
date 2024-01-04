@@ -2,6 +2,7 @@ package org.btbox.pan.storage.engine.oss.config;
 
 import com.aliyun.oss.OSSClient;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 @ConfigurationProperties(prefix = "btbox-pan.storage.engine.oss")
+@Slf4j
 public class OssStorageEngineConfig {
 
     private String endpoint;

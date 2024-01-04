@@ -114,9 +114,9 @@ springdoc:
   api-docs:
     # 是否开启接口文档
     enabled: true
-#  swagger-ui:
-#    # 持久化认证数据
-#    persistAuthorization: true
+  #  swagger-ui:
+  #    # 持久化认证数据
+  #    persistAuthorization: true
   info:
     # 标题
     title: '标题：${btbox.name}SpringBoot脚手架_接口文档'
@@ -129,13 +129,13 @@ springdoc:
       name: BT-BOX
       email: 123@163.com
       url:
-#  components:
-#    # 鉴权方式配置
-#    security-schemes:
-#      apiKey:
-#        type: APIKEY
-#        in: HEADER
-#        name: ${sa-token.token-name}
+  #  components:
+  #    # 鉴权方式配置
+  #    security-schemes:
+  #      apiKey:
+  #        type: APIKEY
+  #        in: HEADER
+  #        name: ${sa-token.token-name}
   #这里定义了两个分组，可定义多个，也可以不定义
   group-configs:
     - group: 1.演示模块
@@ -180,7 +180,7 @@ management:
   endpoints:
     web:
       # 监控的基础路径默认 actuator
-#      base-path: /myactuator
+      #      base-path: /myactuator
       exposure:
         include: '*'
   endpoint:
@@ -255,3 +255,15 @@ security:
     # actuator 监控配置
     - /actuator
     - /actuator/**
+
+# 网盘管理
+btbox-pan:
+  # 存储配置
+  storage:
+    engine:
+      oss:
+        bucket-name: btobx-pan
+        endpoint: oss-cn-guangzhou.aliyuncs.com
+        access-key-id: LTAI5tNVcapc1z1jDFQVvyU6
+        access-key-secret: L9PvAn4w5JqOmmgI5xsOlHT1SQ2O0k
+        auto-create-bucket: true
