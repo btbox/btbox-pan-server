@@ -102,7 +102,6 @@ public class UserFile {
      * 删除标识（0 否 1 是）
      */
     @TableField(value = "del_flag")
-    @TableLogic
     @Schema(description="删除标识（0 否 1 是）")
     @NotNull(message = "删除标识（0 否 1 是）不能为null")
     private Integer delFlag;

@@ -77,6 +77,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         queryWrapper.eq(UserFile::getUserId, userId);
         queryWrapper.eq(UserFile::getParentId, FileConstants.TOP_PARENT_ID);
         queryWrapper.eq(UserFile::getFolderFlag, FolderFlagEnum.YES.getCode());
+        queryWrapper.eq(UserFile::getDelFlag, DelFlagEnum.NO.getCode());
         return this.getOne(queryWrapper);
     }
 
@@ -85,6 +86,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.select(UserFile::getFileId, UserFile::getParentId, UserFile::getFilename, UserFile::getFileSizeDesc, UserFile::getFolderFlag, UserFile::getFileType, UserFile::getUpdateTime);
         queryWrapper.eq(UserFile::getUserId, context.getUserId());
+        queryWrapper.eq(UserFile::getDelFlag, ObjectUtil.isEmpty(context.getDelFlag()) ? DelFlagEnum.NO.getCode() : context.getDelFlag());
         queryWrapper.eq(null != context.getParentId() && context.getParentId() != -1, UserFile::getParentId, context.getParentId());
         queryWrapper.in(CollUtil.isNotEmpty(context.getFileTypeArray()), UserFile::getFileType, context.getFileTypeArray());
         return MapstructUtils.convert(this.list(queryWrapper), UserFileVO.class);
@@ -380,7 +382,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.select(UserFile::getFileId, UserFile::getParentId, UserFile::getFilename, UserFile::getFileSizeDesc, UserFile::getFolderFlag, UserFile::getFileType, UserFile::getUpdateTime);
         queryWrapper.eq(UserFile::getUserId, context.getUserId());
-
+        queryWrapper.eq(UserFile::getDelFlag, DelFlagEnum.NO.getCode());
         queryWrapper.likeRight(UserFile::getFilename, context.getKeyword());
         queryWrapper.in(CollUtil.isNotEmpty(context.getFileTypeArray()), UserFile::getFileType, context.getFileTypeArray());
         return MapstructUtils.convert(this.list(queryWrapper), FileSearchResultVO.class);
@@ -438,6 +440,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     private List<UserFile> findChildRecords(Long parentId) {
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserFile::getParentId, parentId);
+        queryWrapper.eq(UserFile::getDelFlag, DelFlagEnum.NO.getCode());
         return this.list(queryWrapper);
     }
 
@@ -566,6 +569,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserFile::getUserId, userId);
         queryWrapper.eq(UserFile::getFolderFlag, FolderFlagEnum.YES.getCode());
+        queryWrapper.eq(UserFile::getDelFlag, DelFlagEnum.NO.getCode());
         return this.list(queryWrapper);
     }
 
@@ -823,6 +827,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserFile::getParentId, entity.getParentId());
         queryWrapper.eq(UserFile::getFilename, newFilename);
+        queryWrapper.eq(UserFile::getDelFlag, DelFlagEnum.NO.getCode());
         long count = this.count(queryWrapper);
 
         if (count > 0) {
@@ -942,7 +947,6 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserFile::getParentId, entity.getParentId());
         queryWrapper.eq(UserFile::getFolderFlag, entity.getFolderFlag());
-
         queryWrapper.eq(UserFile::getUserId, entity.getFolderFlag());
         queryWrapper.eq(UserFile::getDelFlag, DelFlagEnum.NO.getCode());
         queryWrapper.like(UserFile::getFilename, newFilenameWithoutSuffix);
