@@ -109,7 +109,7 @@ public class UserFile {
     /**
      * 创建人
      */
-    @TableField(value = "create_user")
+    @TableField(value = "create_user", fill = FieldFill.INSERT)
     @Schema(description="创建人")
     @NotNull(message = "创建人不能为null")
     private Long createUser;

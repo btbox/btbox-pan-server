@@ -16,5 +16,8 @@ public class QueryRecycleFileListContext implements Serializable {
     @Serial
     private static final long serialVersionUID = -4581986777209931657L;
 
+    /**
+     * 当前登录的用户ID
+     */
     private Long userId;
 }
