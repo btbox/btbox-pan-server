@@ -171,4 +171,14 @@ public interface UserFileService extends IService<UserFile> {
      * @return: java.util.List<org.btbox.pan.services.modules.file.domain.vo.BreadcrumbVO>
      */
     List<BreadcrumbVO> getBreadcrumbs(QueryBreadcrumbsContext context);
+
+    /**
+     * 递归查询所有的子文件信息
+     * @author: BT-BOX(HJH)
+     * @param records
+     * @version: 1.0
+     * @createDate: 2024/1/10 16:38
+     * @return: java.util.List<org.btbox.pan.services.modules.file.domain.entity.UserFile>
+     */
+    List<UserFile> findAllFileRecords(List<UserFile> records);
 }

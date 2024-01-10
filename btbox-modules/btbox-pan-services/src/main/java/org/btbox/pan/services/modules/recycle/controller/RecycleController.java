@@ -8,7 +8,9 @@ import org.btbox.common.core.domain.R;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.satoken.utils.LoginHelper;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.recycle.domain.bo.DeleteBO;
 import org.btbox.pan.services.modules.recycle.domain.bo.RestoreBO;
+import org.btbox.pan.services.modules.recycle.domain.context.DeleteContext;
 import org.btbox.pan.services.modules.recycle.domain.context.QueryRecycleFileListContext;
 import org.btbox.pan.services.modules.recycle.domain.context.RestoreContext;
 import org.btbox.pan.services.modules.recycle.service.RecycleService;
@@ -52,6 +54,19 @@ public class RecycleController {
         context.setFileIdList(fileIdList);
         context.setUserId(LoginHelper.getUserId());
         recycleService.restore(context);
+        return R.ok();
+    }
+
+    @Schema(title = "删除的文件批量彻底删除", description = "该接口提供了删除的文件批量彻底删除的功能")
+    @PutMapping("delete")
+    public R<Void> delete(@Validated @RequestBody DeleteBO deleteBO) {
+
+        List<Long> fileIdList = StrUtil.split(deleteBO.getFileIds(), BtboxConstants.COMMON_SEPARATOR).stream().map(IdUtil::decrypt).toList();
+
+        DeleteContext context = new DeleteContext();
+        context.setFileIdList(fileIdList);
+        context.setUserId(LoginHelper.getUserId());
+        recycleService.delete(context);
         return R.ok();
     }
 

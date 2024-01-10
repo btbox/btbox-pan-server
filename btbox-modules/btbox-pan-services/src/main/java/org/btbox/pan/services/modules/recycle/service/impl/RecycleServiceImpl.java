@@ -6,11 +6,13 @@ import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.exception.ServiceException;
+import org.btbox.pan.services.common.event.file.FilePhysicalDeleteEvent;
 import org.btbox.pan.services.common.event.file.FileRestoreEvent;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
+import org.btbox.pan.services.modules.recycle.domain.context.DeleteContext;
 import org.btbox.pan.services.modules.recycle.domain.context.QueryRecycleFileListContext;
 import org.btbox.pan.services.modules.recycle.domain.context.RestoreContext;
 import org.btbox.pan.services.modules.recycle.service.RecycleService;
@@ -64,7 +66,71 @@ public class RecycleServiceImpl implements RecycleService {
         afterRestore(context);
     }
 
+    /**
+     * 文件彻底删除
+     * 1. 校验操作权限
+     * 2. 递归查找所有子文件
+     * 3. 执行文件删除操作
+     * 4. 删除后的后置操作
+     * @param context
+     */
+    @Override
+    public void delete(DeleteContext context) {
+        checkFileDeletePermission(context);
+        findAllFileRecords(context);
+        doDelete(context);
+        afterDelete(context);
+    }
+
+
     /********************************** private ******************************/
+
+    /**
+     * 文件彻底删除后的后置操作
+     * 1. 发送一个文件彻底删除的事件
+     * @param context
+     */
+    private void afterDelete(DeleteContext context) {
+        FilePhysicalDeleteEvent event = new FilePhysicalDeleteEvent(this, context.getAllRecords());
+        applicationContext.publishEvent(event);
+    }
+
+    /**
+     * 执行文件删除操作
+     * @param context
+     */
+    private void doDelete(DeleteContext context) {
+        List<Long> fileIdList = context.getFileIdList();
+        if (!userFileService.removeByIds(fileIdList)) {
+            throw new ServiceException("文件删除失败");
+        }
+    }
+
+    /**
+     * 递归查询所有的子文件
+     * @param context
+     */
+    private void findAllFileRecords(DeleteContext context) {
+        List<UserFile> records = context.getRecords();
+        List<UserFile> allRecords = userFileService.findAllFileRecords(records);
+        context.setAllRecords(allRecords);
+    }
+
+    /**
+     * 校验文件删除的操作权限
+     * @param context
+     */
+    private void checkFileDeletePermission(DeleteContext context) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getUserId, context.getUserId());
+        queryWrapper.in(UserFile::getFileId, context.getFileIdList());
+        List<UserFile> records = userFileService.list(queryWrapper);
+        queryWrapper.eq(UserFile::getUserId, context.getUserId());
+        if (CollUtil.isEmpty(records) || records.size() != context.getFileIdList().size()) {
+            throw new ServiceException("您无权删除该文件");
+        }
+        context.setRecords(records);
+    }
 
     /**
      * 检查文件还原的操作权限

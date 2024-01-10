@@ -1,6 +1,7 @@
 package org.btbox.pan.services.modules.recycle.service;
 
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.recycle.domain.context.DeleteContext;
 import org.btbox.pan.services.modules.recycle.domain.context.QueryRecycleFileListContext;
 import org.btbox.pan.services.modules.recycle.domain.context.RestoreContext;
 
@@ -33,4 +34,10 @@ public interface RecycleService {
      * @return: void
      */
     void restore(RestoreContext context);
+
+    /**
+     * 文件彻底删除
+     * @param context
+     */
+    void delete(DeleteContext context);
 }

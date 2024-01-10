@@ -349,6 +349,61 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     }
 
     /**
+     * 递归查询所有的子文件信息
+     * @return
+     */
+    @Override
+    public List<UserFile> findAllFileRecords(List<UserFile> records) {
+        List<UserFile> result = Lists.newArrayList(records);
+        if (CollUtil.isEmpty(result)) {
+            return result;
+        }
+        long folderCount = result.stream().filter(record -> ObjectUtil.equals(record.getFolderFlag(), FolderFlagEnum.YES.getCode())).count();
+        if (folderCount == 0) {
+            return result;
+        }
+        result.stream().forEach(record -> doFindAllChildRecords(result, record));
+        return result;
+    }
+
+    /**
+     * 递归所有的子文件列表
+     * 忽略是否删除的标识
+     * @param result
+     * @param record
+     */
+    private void doFindAllChildRecords(List<UserFile> result, UserFile record) {
+        if (ObjectUtil.isNull(record)) {
+            return;
+        }
+        if (!checkIsFolder(record)) {
+            return;
+        }
+        List<UserFile> childRecords = findChildRecordsIgnoreDelFlag(record.getFileId());
+        if (CollUtil.isEmpty(childRecords)) {
+            return;
+        }
+        result.addAll(childRecords);
+        childRecords.stream()
+                .filter(childRecord -> ObjectUtil.equals(childRecord.getFolderFlag(), FolderFlagEnum.YES.getCode()))
+                .forEach(childRecord -> doFindAllChildRecords(result, childRecord));
+
+
+    }
+
+    /**
+     * 查询文件夹下面的文件记录，忽略删除标识
+     * @param fileId
+     * @return
+     */
+    private List<UserFile> findChildRecordsIgnoreDelFlag(Long fileId) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getParentId, fileId);
+        List<UserFile> childRecords = this.list(queryWrapper);
+        return childRecords;
+    }
+
+    /**
      * 搜索的后置操作
      * 1. 发布文件搜索的事件
      * @param context
