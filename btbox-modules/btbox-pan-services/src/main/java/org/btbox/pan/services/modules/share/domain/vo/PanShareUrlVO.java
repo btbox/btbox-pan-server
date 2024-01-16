@@ -13,7 +13,7 @@ import org.btbox.common.json.utils.IdEncryptSerializer;
  */
 @Schema(title = "创建分享链接的返回实体对象")
 @Data
-public class RPanShareUrlVO {
+public class PanShareUrlVO {
 
     @JsonSerialize(using = IdEncryptSerializer.class)
     @Schema(title = "分享链接ID")

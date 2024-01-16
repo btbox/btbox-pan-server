@@ -1,9 +1,13 @@
 package org.btbox.pan.services.modules.share.service;
 
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
+import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
 import org.btbox.pan.services.modules.share.domain.entity.PanShare;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.btbox.pan.services.modules.share.domain.vo.RPanShareUrlVO;
+import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
+import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
+
+import java.util.List;
 
 /**
  * @description: 
@@ -21,6 +25,12 @@ public interface PanShareService extends IService<PanShare>{
      * @createDate: 2024/1/16 11:23
      * @return: org.btbox.pan.services.modules.share.domain.vo.RPanShareUrlVO
      */
-    RPanShareUrlVO create(CreateShareUrlContext context);
+    PanShareUrlVO create(CreateShareUrlContext context);
 
+    /**
+     * 查询用户的分享列表
+     * @param context
+     * @return
+     */
+    List<PanShareUrlListVO> getShares(QueryShareListContext context);
 }

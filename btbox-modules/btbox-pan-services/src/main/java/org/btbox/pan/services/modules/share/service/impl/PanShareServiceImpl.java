@@ -2,23 +2,26 @@ package org.btbox.pan.services.modules.share.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.exception.ServiceException;
-import org.btbox.common.core.utils.DateUtils;
 import org.btbox.common.core.utils.IdUtil;
+import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.pan.services.common.config.PanServerConfig;
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
+import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
 import org.btbox.pan.services.modules.share.domain.context.SaveShareFilesContext;
-import org.btbox.pan.services.modules.share.domain.vo.RPanShareUrlVO;
+import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
+import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
 import org.btbox.pan.services.modules.share.enums.ShareDayTypeEnum;
 import org.btbox.pan.services.modules.share.service.PanShareFileService;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.Resource;
 
 import java.util.Date;
 import java.util.List;
+
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.btbox.pan.services.modules.share.domain.entity.PanShare;
 import org.btbox.pan.services.modules.share.repository.mapper.PanShareMapper;
@@ -52,11 +55,36 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
      */
     @Transactional(rollbackFor = ServiceException.class)
     @Override
-    public RPanShareUrlVO create(CreateShareUrlContext context) {
+    public PanShareUrlVO create(CreateShareUrlContext context) {
         saveShare(context);
         saveShareFiles(context);
         return assembleShareVO(context);
     }
+
+    /**
+     * 查询用户的分享列表
+     *
+     * @param context
+     * @return
+     */
+    @Override
+    public List<PanShareUrlListVO> getShares(QueryShareListContext context) {
+        LambdaQueryWrapper<PanShare> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(
+                PanShare::getShareId,
+                PanShare::getShareName,
+                PanShare::getShareType,
+                PanShare::getShareDayType,
+                PanShare::getShareEndTime,
+                PanShare::getShareUrl,
+                PanShare::getShareCode,
+                PanShare::getShareStatus,
+                PanShare::getCreateTime
+        );
+        queryWrapper.eq(PanShare::getCreateUser, context.getUserId());
+        return MapstructUtils.convert(this.list(queryWrapper), PanShareUrlListVO.class);
+    }
+
 
     /***************************************** private ****************************************/
 
@@ -65,9 +93,9 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
      * @param context
      * @return
      */
-    private RPanShareUrlVO assembleShareVO(CreateShareUrlContext context) {
+    private PanShareUrlVO assembleShareVO(CreateShareUrlContext context) {
         PanShare record = context.getRecord();
-        RPanShareUrlVO vo = new RPanShareUrlVO();
+        PanShareUrlVO vo = new PanShareUrlVO();
         vo.setShareId(record.getShareId());
         vo.setShareName(record.getShareName());
         vo.setShareUrl(record.getShareUrl());

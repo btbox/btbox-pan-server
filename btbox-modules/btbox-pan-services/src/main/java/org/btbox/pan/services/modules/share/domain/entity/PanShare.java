@@ -4,22 +4,26 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.github.linpeilie.annotations.AutoMapper;
+import io.github.linpeilie.annotations.AutoMappers;
+import io.github.linpeilie.annotations.AutoMappings;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
 import lombok.Data;
+import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
 
 /**
- * @description: 
+ * @description: 用户分享表
  * @author: BT-BOX
  * @createDate: 2024/1/16 10:38
  * @version: 1.0
 */
-/**
-    * 用户分享表
-    */
+@AutoMappers(
+        @AutoMapper(target = PanShareUrlListVO.class)
+)
 @Schema(description="用户分享表")
 @Data
 @TableName(value = "btbox_pan_share")
