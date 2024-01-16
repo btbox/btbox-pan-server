@@ -8,7 +8,9 @@ import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.domain.R;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.satoken.utils.LoginHelper;
+import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.convert.ShareConvert;
+import org.btbox.pan.services.modules.share.domain.bo.CancelShareBO;
 import org.btbox.pan.services.modules.share.domain.bo.CreateShareUrlBO;
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
 import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
@@ -56,6 +58,18 @@ public class ShareController {
         context.setUserId(LoginHelper.getUserId());
         List<PanShareUrlListVO> result = panShareService.getShares(context);
         return R.ok(result);
+    }
+
+    @Operation(summary = "取消分享", description = "该接口提供了取消分享的功能")
+    @DeleteMapping("cancel")
+    public R<Void> cancelShare(@Validated @RequestBody CancelShareBO cancelShareBO) {
+        CancelShareContext context = new CancelShareContext();
+        context.setUserId(LoginHelper.getUserId());
+        String shareIds = cancelShareBO.getShareIds();
+        List<Long> shareIdList = StrUtil.split(shareIds, BtboxConstants.COMMON_SEPARATOR).stream().map(IdUtil::decrypt).toList();
+        context.setShareIdList(shareIdList);
+        panShareService.cancelShare(context);
+        return R.ok();
     }
 
 }

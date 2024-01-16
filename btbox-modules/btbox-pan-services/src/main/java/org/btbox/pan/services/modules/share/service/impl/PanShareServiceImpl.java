@@ -1,8 +1,10 @@
 package org.btbox.pan.services.modules.share.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.btbox.common.core.constant.BtboxConstants;
@@ -10,23 +12,23 @@ import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.pan.services.common.config.PanServerConfig;
+import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
 import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
 import org.btbox.pan.services.modules.share.domain.context.SaveShareFilesContext;
+import org.btbox.pan.services.modules.share.domain.entity.PanShare;
+import org.btbox.pan.services.modules.share.domain.entity.PanShareFile;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
 import org.btbox.pan.services.modules.share.enums.ShareDayTypeEnum;
+import org.btbox.pan.services.modules.share.repository.mapper.PanShareMapper;
 import org.btbox.pan.services.modules.share.service.PanShareFileService;
+import org.btbox.pan.services.modules.share.service.PanShareService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.btbox.pan.services.modules.share.domain.entity.PanShare;
-import org.btbox.pan.services.modules.share.repository.mapper.PanShareMapper;
-import org.btbox.pan.services.modules.share.service.PanShareService;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @description: 
@@ -87,6 +89,67 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
 
 
     /***************************************** private ****************************************/
+
+    /**
+     * 取消分享链接
+     * 1. 校验用户的操作权限
+     * 2. 删除对应的分享记录
+     * 3. 删除对应的分享文件关联关系记录
+     * @param context
+     * @author: BT-BOX(HJH)
+     * @version: 1.0
+     * @createDate: 2024/1/16 16:11
+     * @return: void
+     */
+    @Transactional(rollbackFor = ServiceException.class)
+    @Override
+    public void cancelShare(CancelShareContext context) {
+        checkUserCancelSharePermission(context);
+        doCancelShare(context);
+        doCancelShareFiles(context);
+    }
+
+    /**
+     * 取消文件和分享的关联关系数据
+     * @param context
+     */
+    private void doCancelShareFiles(CancelShareContext context) {
+        LambdaQueryWrapper<PanShareFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(PanShareFile::getShareId, context.getShareIdList());
+        queryWrapper.eq(PanShareFile::getCreateUser, context.getUserId());
+        if (!panShareFileService.remove(queryWrapper)) {
+            throw new ServiceException("取消分享失败");
+        }
+    }
+
+    /**
+     * 执行取消文件分享的动作
+     * @param context
+     */
+    private void doCancelShare(CancelShareContext context) {
+        List<Long> shareIdList = context.getShareIdList();
+        if (!this.removeByIds(shareIdList)) {
+            throw new ServiceException("取消分享失败");
+        }
+    }
+
+    /**
+     * 检查用户是否拥有取消对应分享链接的权限
+     * @param context
+     */
+    private void checkUserCancelSharePermission(CancelShareContext context) {
+        List<Long> shareIdList = context.getShareIdList();
+        Long userId = context.getUserId();
+        List<PanShare> records = this.listByIds(shareIdList);
+        if (CollUtil.isEmpty(records)) {
+            throw new ServiceException("您无权限操作取消分享的动作");
+        }
+        for (PanShare record : records) {
+            if (!ObjectUtil.equals(userId, record.getCreateUser())) {
+                throw new ServiceException("您无权限操作取消分享的动作");
+            }
+        }
+    }
 
     /**
      * 拼装对应的返回VO

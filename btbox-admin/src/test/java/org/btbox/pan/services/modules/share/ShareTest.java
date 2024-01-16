@@ -1,9 +1,11 @@
 package org.btbox.pan.services.modules.share;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import org.assertj.core.util.Lists;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.service.UserFileService;
+import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
 import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
@@ -100,6 +102,45 @@ public class ShareTest {
         queryShareListContext.setUserId(userId);
         List<PanShareUrlListVO> result = panShareService.getShares(queryShareListContext);
         Assert.notEmpty(result);
+    }
+
+    /**
+     * 取消分享成功
+     */
+    @Test
+    public void cancelShareSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name");
+
+        Long fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
+
+        CreateShareUrlContext createShareUrlContext = new CreateShareUrlContext();
+        createShareUrlContext.setShareName("share-1");
+        createShareUrlContext.setShareDayType(ShareDayTypeEnum.SEVEN_DAYS_VALIDITY.getCode());
+        createShareUrlContext.setShareType(ShareTypeEnum.NEED_SHARE_CODE.getCode());
+        createShareUrlContext.setUserId(userId);
+        createShareUrlContext.setShareFileIdList(Lists.newArrayList(fileId));
+        PanShareUrlVO vo = panShareService.create(createShareUrlContext);
+        Assert.isTrue(Objects.nonNull(vo));
+
+        QueryShareListContext queryShareListContext = new QueryShareListContext();
+        queryShareListContext.setUserId(userId);
+        List<PanShareUrlListVO> result = panShareService.getShares(queryShareListContext);
+        Assert.notEmpty(result);
+
+        CancelShareContext cancelShareContext = new CancelShareContext();
+        cancelShareContext.setUserId(userId);
+        cancelShareContext.setShareIdList(Lists.newArrayList(vo.getShareId()));
+        panShareService.cancelShare(cancelShareContext);
+
+        result = panShareService.getShares(queryShareListContext);
+        Assert.isTrue(CollUtil.isEmpty(result));
     }
 
     private Long register() {
