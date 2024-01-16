@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.btbox.pan.services.modules.share.repository.mapper.PanShareFileMapper">
+  <resultMap id="BaseResultMap" type="org.btbox.pan.services.modules.share.domain.entity.PanShareFile">
+    <!--@mbg.generated-->
+    <!--@Table btbox_pan_share_file-->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="share_id" jdbcType="BIGINT" property="shareId" />
+    <result column="file_id" jdbcType="BIGINT" property="fileId" />
+    <result column="create_user" jdbcType="BIGINT" property="createUser" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    id, share_id, file_id, create_user, create_time
+  </sql>
+</mapper>
