@@ -1,6 +1,7 @@
 package org.btbox.pan.services.modules.share.service;
 
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
+import org.btbox.pan.services.modules.share.domain.context.CheckShareCodeContext;
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
 import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
 import org.btbox.pan.services.modules.share.domain.entity.PanShare;
@@ -44,4 +45,14 @@ public interface PanShareService extends IService<PanShare>{
      * @return: void
      */
     void cancelShare(CancelShareContext context);
+
+    /**
+     * 校验分享码
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2024/1/16 16:43
+     * @return: java.lang.String
+     */
+    String checkShareCode(CheckShareCodeContext context);
 }

@@ -6,6 +6,7 @@ import org.assertj.core.util.Lists;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
+import org.btbox.pan.services.modules.share.domain.context.CheckShareCodeContext;
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
 import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
@@ -141,6 +142,38 @@ public class ShareTest {
 
         result = panShareService.getShares(queryShareListContext);
         Assert.isTrue(CollUtil.isEmpty(result));
+    }
+
+    /**
+     * 校验分享码成功
+     */
+    @Test
+    public void checkShareCodeSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name");
+
+        Long fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
+
+        CreateShareUrlContext createShareUrlContext = new CreateShareUrlContext();
+        createShareUrlContext.setShareName("share-1");
+        createShareUrlContext.setShareDayType(ShareDayTypeEnum.SEVEN_DAYS_VALIDITY.getCode());
+        createShareUrlContext.setShareType(ShareTypeEnum.NEED_SHARE_CODE.getCode());
+        createShareUrlContext.setUserId(userId);
+        createShareUrlContext.setShareFileIdList(Lists.newArrayList(fileId));
+        PanShareUrlVO vo = panShareService.create(createShareUrlContext);
+        Assert.isTrue(Objects.nonNull(vo));
+
+        CheckShareCodeContext checkShareCodeContext = new CheckShareCodeContext();
+        checkShareCodeContext.setShareId(vo.getShareId());
+        checkShareCodeContext.setShareCode(vo.getShareCode());
+        String token = panShareService.checkShareCode(checkShareCodeContext);
+        Assert.notBlank(token);
     }
 
     private Long register() {

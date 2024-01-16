@@ -1,5 +1,6 @@
 package org.btbox.pan.services.modules.share.controller;
 
+import cn.dev33.satoken.annotation.SaIgnore;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,7 +12,9 @@ import org.btbox.common.satoken.utils.LoginHelper;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.convert.ShareConvert;
 import org.btbox.pan.services.modules.share.domain.bo.CancelShareBO;
+import org.btbox.pan.services.modules.share.domain.bo.CheckShareCodeBO;
 import org.btbox.pan.services.modules.share.domain.bo.CreateShareUrlBO;
+import org.btbox.pan.services.modules.share.domain.context.CheckShareCodeContext;
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
 import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
@@ -70,6 +73,17 @@ public class ShareController {
         context.setShareIdList(shareIdList);
         panShareService.cancelShare(context);
         return R.ok();
+    }
+
+    @Operation(summary = "校验分享码", description = "该接口提供了校验分享码的功能")
+    @SaIgnore
+    @PostMapping("code/check")
+    public R<String> checkShareCode(@Validated @RequestBody CheckShareCodeBO checkShareCodeBO) {
+        CheckShareCodeContext context = new CheckShareCodeContext();
+        context.setShareId(IdUtil.decrypt(checkShareCodeBO.getShareId()));
+        context.setShareCode(checkShareCodeBO.getShareCode());
+        String token = panShareService.checkShareCode(context);
+        return R.ok(token);
     }
 
 }

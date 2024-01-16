@@ -8,11 +8,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.btbox.common.core.constant.BtboxConstants;
+import org.btbox.common.core.enums.ResponseCode;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.IdUtil;
+import org.btbox.common.core.utils.JwtUtil;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.pan.services.common.config.PanServerConfig;
+import org.btbox.pan.services.modules.share.constants.ShareConstants;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
+import org.btbox.pan.services.modules.share.domain.context.CheckShareCodeContext;
 import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
 import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
 import org.btbox.pan.services.modules.share.domain.context.SaveShareFilesContext;
@@ -21,6 +25,7 @@ import org.btbox.pan.services.modules.share.domain.entity.PanShareFile;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
 import org.btbox.pan.services.modules.share.enums.ShareDayTypeEnum;
+import org.btbox.pan.services.modules.share.enums.ShareStatusEnum;
 import org.btbox.pan.services.modules.share.repository.mapper.PanShareMapper;
 import org.btbox.pan.services.modules.share.service.PanShareFileService;
 import org.btbox.pan.services.modules.share.service.PanShareService;
@@ -107,6 +112,71 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
         checkUserCancelSharePermission(context);
         doCancelShare(context);
         doCancelShareFiles(context);
+    }
+
+    /**
+     * 校验分享码
+     * 1. 检查分享的状态是否正常
+     * 2. 校验分享的分享码是否正确
+     * 3. 生成一个短时间的分享token返回给上游
+     * @param context
+     * @author: BT-BOX(HJH)
+     * @version: 1.0
+     * @createDate: 2024/1/16 16:43
+     * @return: java.lang.String
+     */
+    @Override
+    public String checkShareCode(CheckShareCodeContext context) {
+        PanShare record = checkShareStatus(context.getShareId());
+        context.setRecord(record);
+        doCheckShareCode(context);
+        return generateShareToken(context);
+    }
+
+    /**
+     * 生成短期的token
+     * @param context
+     * @return
+     */
+    private String generateShareToken(CheckShareCodeContext context) {
+        PanShare record = context.getRecord();
+        return JwtUtil.generateToken(cn.hutool.core.util.IdUtil.fastSimpleUUID(), ShareConstants.SHARE_ID, record.getShareId(), ShareConstants.ONE_HOUR_LONG);
+    }
+
+    /**
+     * 校验分享码是不是正确
+     * @param context
+     */
+    private void doCheckShareCode(CheckShareCodeContext context) {
+        PanShare record = context.getRecord();
+        if (!ObjectUtil.equals(context.getShareCode(), record.getShareCode())) {
+            throw new ServiceException("分享码错误");
+        }
+    }
+
+    /**
+     * 检查分享的状态是否正常
+     * @param shareId
+     * @return
+     */
+    private PanShare checkShareStatus(Long shareId) {
+        PanShare record = this.getById(shareId);
+        if (ObjectUtil.isNull(record)) {
+            throw new ServiceException(ResponseCode.SHARE_CANCELLED.getDesc(), ResponseCode.SHARE_CANCELLED.getCode());
+        }
+
+        if (ObjectUtil.equals(ShareStatusEnum.FILE_DELETED.getCode(), record.getShareStatus())) {
+            throw new ServiceException(ResponseCode.SHARE_FILE_MISS.getDesc(), ResponseCode.SHARE_FILE_MISS.getCode());
+        }
+
+        if (ObjectUtil.equals(ShareDayTypeEnum.PERMANENT_VALIDITY.getCode(), record.getShareStatus())) {
+            return record;
+        }
+
+        if (record.getShareEndTime().before(new Date())) {
+            throw new ServiceException(ResponseCode.SHARE_EXPIRE.getDesc(), ResponseCode.SHARE_EXPIRE.getCode());
+        }
+        return record;
     }
 
     /**

@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 @RequestMapping("file")
 @RestController
 @RequiredArgsConstructor
-@SaIgnore
 @Tag(name = "文件控制器")
 @Validated
 public class FileController {
