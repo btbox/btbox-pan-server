@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @createDate: 2024/1/3 11:25
  * @version: 1.0
 */
-public interface PanUserSearchHistoryService extends IService<PanUserSearchHistory>{
+public interface PanUserSearchHistoryService extends IService<PanUserSearchHistory> {
 
 
 }

@@ -88,6 +88,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         queryWrapper.eq(UserFile::getUserId, context.getUserId());
         queryWrapper.eq(UserFile::getDelFlag, ObjectUtil.isEmpty(context.getDelFlag()) ? DelFlagEnum.NO.getCode() : context.getDelFlag());
         queryWrapper.eq(null != context.getParentId() && context.getParentId() != -1, UserFile::getParentId, context.getParentId());
+        queryWrapper.in(CollUtil.isNotEmpty(context.getFileIdList()), UserFile::getFileId, context.getFileIdList());
         queryWrapper.in(CollUtil.isNotEmpty(context.getFileTypeArray()), UserFile::getFileType, context.getFileTypeArray());
         return MapstructUtils.convert(this.list(queryWrapper), UserFileVO.class);
     }

@@ -1,13 +1,13 @@
 package org.btbox.pan.services.modules.share.service;
 
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
-import org.btbox.pan.services.modules.share.domain.context.CheckShareCodeContext;
-import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
-import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
+import org.btbox.pan.services.modules.share.domain.context.*;
 import org.btbox.pan.services.modules.share.domain.entity.PanShare;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
+import org.btbox.pan.services.modules.share.domain.vo.ShareDetailVO;
+import org.btbox.pan.services.modules.share.domain.vo.ShareSimpleDetailVO;
 
 import java.util.List;
 
@@ -55,4 +55,24 @@ public interface PanShareService extends IService<PanShare>{
      * @return: java.lang.String
      */
     String checkShareCode(CheckShareCodeContext context);
+
+    /**
+     * 查询分享详情信息
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2024/1/17 9:42
+     * @return: org.btbox.pan.services.modules.share.domain.vo.ShareDetailVO
+     */
+    ShareDetailVO detail(QueryShareDetailContext context);
+
+    /**
+     * 查询分享的简单详情
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2024/1/17 11:21
+     * @return: org.btbox.pan.services.modules.share.domain.vo.ShareSimpleDetailVO
+     */
+    ShareSimpleDetailVO simpleDetail(QueryShareSimpleDetailContext context);
 }

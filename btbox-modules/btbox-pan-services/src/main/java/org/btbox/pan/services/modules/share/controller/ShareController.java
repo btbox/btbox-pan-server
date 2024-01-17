@@ -4,21 +4,24 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.constant.BtboxConstants;
 import org.btbox.common.core.domain.R;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.satoken.utils.LoginHelper;
+import org.btbox.pan.services.common.annotation.NeedShareCode;
+import org.btbox.pan.services.common.utils.ShareIdUtil;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.convert.ShareConvert;
 import org.btbox.pan.services.modules.share.domain.bo.CancelShareBO;
 import org.btbox.pan.services.modules.share.domain.bo.CheckShareCodeBO;
 import org.btbox.pan.services.modules.share.domain.bo.CreateShareUrlBO;
-import org.btbox.pan.services.modules.share.domain.context.CheckShareCodeContext;
-import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
-import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
+import org.btbox.pan.services.modules.share.domain.context.*;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
+import org.btbox.pan.services.modules.share.domain.vo.ShareDetailVO;
+import org.btbox.pan.services.modules.share.domain.vo.ShareSimpleDetailVO;
 import org.btbox.pan.services.modules.share.service.PanShareService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -84,6 +87,27 @@ public class ShareController {
         context.setShareCode(checkShareCodeBO.getShareCode());
         String token = panShareService.checkShareCode(context);
         return R.ok(token);
+    }
+
+    @Operation(summary = "查看分享详情", description = "该接口提供了查看分享详情的功能")
+    @SaIgnore
+    @NeedShareCode
+    @PostMapping("detail")
+    public R<ShareDetailVO> detail() {
+        QueryShareDetailContext context = new QueryShareDetailContext();
+        context.setShareId(ShareIdUtil.get());
+        ShareDetailVO vo = panShareService.detail(context);
+        return R.ok(vo);
+    }
+
+    @Operation(summary = "查看分享简单详情", description = "该接口提供了查看分享简单详情的功能")
+    @SaIgnore
+    @GetMapping("simple")
+    public R<ShareSimpleDetailVO> simpleDetail(@NotBlank(message = "分享的ID不能为空") String shareId) {
+        QueryShareSimpleDetailContext context = new QueryShareSimpleDetailContext();
+        context.setShareId(IdUtil.decrypt(shareId));
+        ShareSimpleDetailVO vo = panShareService.simpleDetail(context);
+        return R.ok(vo);
     }
 
 }

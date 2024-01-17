@@ -2,33 +2,36 @@ package org.btbox.pan.services.modules.share.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.btbox.common.core.constant.BtboxConstants;
+import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.enums.ResponseCode;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.core.utils.JwtUtil;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.pan.services.common.config.PanServerConfig;
+import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
+import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
+import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.share.constants.ShareConstants;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
-import org.btbox.pan.services.modules.share.domain.context.CheckShareCodeContext;
-import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
-import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
-import org.btbox.pan.services.modules.share.domain.context.SaveShareFilesContext;
+import org.btbox.pan.services.modules.share.domain.context.*;
 import org.btbox.pan.services.modules.share.domain.entity.PanShare;
 import org.btbox.pan.services.modules.share.domain.entity.PanShareFile;
-import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
-import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
+import org.btbox.pan.services.modules.share.domain.vo.*;
 import org.btbox.pan.services.modules.share.enums.ShareDayTypeEnum;
 import org.btbox.pan.services.modules.share.enums.ShareStatusEnum;
 import org.btbox.pan.services.modules.share.repository.mapper.PanShareMapper;
 import org.btbox.pan.services.modules.share.service.PanShareFileService;
 import org.btbox.pan.services.modules.share.service.PanShareService;
+import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
+import org.btbox.pan.services.modules.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +51,10 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
     private final PanServerConfig panServerConfig;
 
     private final PanShareFileService panShareFileService;
+
+    private final UserFileService userFileService;
+
+    private final UserService userService;
 
     /**
      * 创建分享链接
@@ -131,6 +138,148 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
         context.setRecord(record);
         doCheckShareCode(context);
         return generateShareToken(context);
+    }
+
+    /**
+     * 查询分享详情信息
+     * 1. 校验分享的状态
+     * 2. 初始化分享实体
+     * 3. 查询分享的主体信息
+     * 4. 查询分享的文件列表
+     * 5. 查询分享者的信息
+     * @param context
+     * @author: BT-BOX(HJH)
+     * @version: 1.0
+     * @createDate: 2024/1/17 9:42
+     * @return: org.btbox.pan.services.modules.share.domain.vo.ShareDetailVO
+     */
+    @Override
+    public ShareDetailVO detail(QueryShareDetailContext context) {
+        PanShare record = checkShareStatus(context.getShareId());
+        context.setRecord(record);
+        initShareVO(context);
+        assembleMainShareInfo(context);
+        assembleShareFilesInfo(context);
+        assembleShareUserInfo(context);
+        return context.getVo();
+    }
+
+    /**
+     * 查询分享的简单详情
+     * 1. 校验分享的状态
+     * 2. 初始化分享实体
+     * 3. 查询分享的主体信息
+     * 4. 查询分享者的信息
+     * @param context
+     * @author: BT-BOX(HJH)
+     * @version: 1.0
+     * @createDate: 2024/1/17 11:21
+     * @return: org.btbox.pan.services.modules.share.domain.vo.ShareSimpleDetailVO
+     */
+    @Override
+    public ShareSimpleDetailVO simpleDetail(QueryShareSimpleDetailContext context) {
+        PanShare record = checkShareStatus(context.getShareId());
+        context.setRecord(record);
+        initShareSimpleVO(context);
+        assembleMainSimpleShareInfo(context);
+        assembleShareSimpleUserInfo(context);
+        return context.getVo();
+    }
+
+    /**
+     * 拼装简单分享详情的用户信息
+     * @param context
+     */
+    private void assembleShareSimpleUserInfo(QueryShareSimpleDetailContext context) {
+        BtboxPanUser record = userService.getById(context.getRecord().getCreateUser());
+        if (ObjectUtil.isNull(record)) {
+            throw new ServiceException("用户信息查询失败");
+        }
+        ShareUserInfoVO shareUserInfoVO = new ShareUserInfoVO();
+        shareUserInfoVO.setUserId(record.getUserId());
+        shareUserInfoVO.setUsername(DesensitizedUtil.chineseName(record.getUsername()));
+
+        context.getVo().setShareUserInfoVO(shareUserInfoVO);
+    }
+
+    /**
+     * 填充简单分享详情实体信息
+     * @param context
+     */
+    private void assembleMainSimpleShareInfo(QueryShareSimpleDetailContext context) {
+        PanShare record = context.getRecord();
+        ShareSimpleDetailVO vo = context.getVo();
+        vo.setShareId(record.getShareId());
+        vo.setShareName(record.getShareName());
+    }
+
+    /**
+     * 初始化简单分享详情的VO对象
+     * @param context
+     */
+    private void initShareSimpleVO(QueryShareSimpleDetailContext context) {
+        ShareSimpleDetailVO vo = new ShareSimpleDetailVO();
+        context.setVo(vo);
+    }
+
+    /**
+     * 查询分享者的信息
+     * @param context
+     */
+    private void assembleShareUserInfo(QueryShareDetailContext context) {
+        BtboxPanUser record = userService.getById(context.getRecord().getCreateUser());
+        if (ObjectUtil.isNull(record)) {
+            throw new ServiceException("用户信息查询失败");
+        }
+        ShareUserInfoVO shareUserInfoVO = new ShareUserInfoVO();
+        shareUserInfoVO.setUserId(record.getUserId());
+        shareUserInfoVO.setUsername(DesensitizedUtil.chineseName(record.getUsername()));
+
+        context.getVo().setShareUserInfoVO(shareUserInfoVO);
+    }
+
+    /**
+     * 查询分享对应的文件列表
+     * 1. 查询分享对应的文件ID集合
+     * 2. 根据文件ID来查询文件列表信息
+     * @param context
+     */
+    private void assembleShareFilesInfo(QueryShareDetailContext context) {
+        LambdaQueryWrapper<PanShareFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(PanShareFile::getFileId);
+        queryWrapper.eq(PanShareFile::getShareId, context.getShareId());
+        List<Long> fileIdList = panShareFileService.listObjs(queryWrapper, value -> (Long) value);
+
+        QueryFileListContext queryFileListContext = new QueryFileListContext();
+        queryFileListContext.setUserId(context.getRecord().getCreateUser());
+        queryFileListContext.setDelFlag(DelFlagEnum.NO.getCode());
+        queryFileListContext.setFileIdList(fileIdList);
+
+        List<UserFileVO> userFileVOList = userFileService.getFileList(queryFileListContext);
+        context.getVo().setUserFileVOList(userFileVOList);
+    }
+
+    /**
+     * 查询分享的主体信息
+     * @param context
+     */
+    private void assembleMainShareInfo(QueryShareDetailContext context) {
+        PanShare record = context.getRecord();
+        ShareDetailVO vo = context.getVo();
+        vo.setShareId(record.getShareId());
+        vo.setShareName(record.getShareName());
+        vo.setCreateTime(record.getCreateTime());
+        vo.setShareDay(record.getShareDay());
+        vo.setShareEndTime(record.getShareEndTime());
+    }
+
+    /**
+     * 初始化文件详情的VO实体
+     * @param context
+     */
+    private void initShareVO(QueryShareDetailContext context) {
+        ShareDetailVO vo = new ShareDetailVO();
+        context.setVo(vo);
     }
 
     /**

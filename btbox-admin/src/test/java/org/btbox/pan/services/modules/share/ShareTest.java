@@ -6,11 +6,11 @@ import org.assertj.core.util.Lists;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
-import org.btbox.pan.services.modules.share.domain.context.CheckShareCodeContext;
-import org.btbox.pan.services.modules.share.domain.context.CreateShareUrlContext;
-import org.btbox.pan.services.modules.share.domain.context.QueryShareListContext;
+import org.btbox.pan.services.modules.share.domain.context.*;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
+import org.btbox.pan.services.modules.share.domain.vo.ShareDetailVO;
+import org.btbox.pan.services.modules.share.domain.vo.ShareSimpleDetailVO;
 import org.btbox.pan.services.modules.share.enums.ShareDayTypeEnum;
 import org.btbox.pan.services.modules.share.enums.ShareTypeEnum;
 import org.btbox.pan.services.modules.share.service.PanShareService;
@@ -174,6 +174,68 @@ public class ShareTest {
         checkShareCodeContext.setShareCode(vo.getShareCode());
         String token = panShareService.checkShareCode(checkShareCodeContext);
         Assert.notBlank(token);
+    }
+
+    /**
+     * 校验查询分享详情成功
+     */
+    @Test
+    public void queryShareDetailSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name");
+
+        Long fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
+
+        CreateShareUrlContext createShareUrlContext = new CreateShareUrlContext();
+        createShareUrlContext.setShareName("share-1");
+        createShareUrlContext.setShareDayType(ShareDayTypeEnum.SEVEN_DAYS_VALIDITY.getCode());
+        createShareUrlContext.setShareType(ShareTypeEnum.NEED_SHARE_CODE.getCode());
+        createShareUrlContext.setUserId(userId);
+        createShareUrlContext.setShareFileIdList(Lists.newArrayList(fileId));
+        PanShareUrlVO vo = panShareService.create(createShareUrlContext);
+        Assert.isTrue(Objects.nonNull(vo));
+
+        QueryShareDetailContext queryShareDetailContext = new QueryShareDetailContext();
+        queryShareDetailContext.setShareId(vo.getShareId());
+        ShareDetailVO shareDetailVO = panShareService.detail(queryShareDetailContext);
+        Assert.notNull(shareDetailVO);
+    }
+
+    /**
+     * 校验查询分享简单详情成功
+     */
+    @Test
+    public void queryShareSimpleDetailSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name");
+
+        Long fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
+
+        CreateShareUrlContext createShareUrlContext = new CreateShareUrlContext();
+        createShareUrlContext.setShareName("share-1");
+        createShareUrlContext.setShareDayType(ShareDayTypeEnum.SEVEN_DAYS_VALIDITY.getCode());
+        createShareUrlContext.setShareType(ShareTypeEnum.NEED_SHARE_CODE.getCode());
+        createShareUrlContext.setUserId(userId);
+        createShareUrlContext.setShareFileIdList(Lists.newArrayList(fileId));
+        PanShareUrlVO vo = panShareService.create(createShareUrlContext);
+        Assert.isTrue(Objects.nonNull(vo));
+
+        QueryShareSimpleDetailContext queryShareSimpleDetailContext = new QueryShareSimpleDetailContext();
+        queryShareSimpleDetailContext.setShareId(vo.getShareId());
+        ShareSimpleDetailVO shareSimpleDetailVO = panShareService.simpleDetail(queryShareSimpleDetailContext);
+        Assert.notNull(shareSimpleDetailVO);
     }
 
     private Long register() {

@@ -37,4 +37,9 @@ public class QueryFileListContext implements Serializable {
      */
     private Integer delFlag;
 
+    /**
+     * 文件ID集合
+     */
+    private List<Long> fileIdList;
+
 }

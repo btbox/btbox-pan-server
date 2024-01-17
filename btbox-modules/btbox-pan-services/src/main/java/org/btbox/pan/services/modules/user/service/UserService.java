@@ -1,6 +1,9 @@
 package org.btbox.pan.services.modules.user.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import org.btbox.pan.services.modules.user.domain.context.*;
+import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
+import org.btbox.pan.services.modules.user.domain.entity.PanUserSearchHistory;
 import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 
 /**
@@ -9,7 +12,7 @@ import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
  * @createDate: 2023/12/13 16:51
  * @version: 1.0
  */
-public interface UserService {
+public interface UserService extends IService<BtboxPanUser> {
 
     /**
      * 注册用户
