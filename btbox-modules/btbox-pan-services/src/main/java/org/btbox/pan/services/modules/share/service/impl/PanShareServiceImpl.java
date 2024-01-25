@@ -17,12 +17,14 @@ import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.core.utils.JwtUtil;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.pan.services.common.config.PanServerConfig;
+import org.btbox.pan.services.modules.file.domain.context.CopyFileContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.share.constants.ShareConstants;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
+import org.btbox.pan.services.modules.share.convert.ShareSaveContext;
 import org.btbox.pan.services.modules.share.domain.context.*;
 import org.btbox.pan.services.modules.share.domain.entity.PanShare;
 import org.btbox.pan.services.modules.share.domain.entity.PanShareFile;
@@ -213,12 +215,48 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
     }
 
     /**
+     * 转存至我的网盘
+     * 1. 校验分享状态
+     * 2. 校验文件ID是否合法
+     * 3. 委托文件模块做文件拷贝的操作
+     * @param context
+     */
+    @Override
+    public void saveFiles(ShareSaveContext context) {
+        checkShareStatus(context.getShareId());
+        checkFileIdIsOnShareStatus(context.getShareId(), context.getFileIdList());
+        doSaveFiles(context);
+    }
+
+    /**
+     * 执行保存我的网盘操作
+     * 委托文件模块做文件拷贝的操作
+     * @param context
+     */
+    private void doSaveFiles(ShareSaveContext context) {
+        CopyFileContext copyFileContext = new CopyFileContext();
+        copyFileContext.setFileIdList(context.getFileIdList());
+        copyFileContext.setTargetParentId(context.getTargetParentId());
+        copyFileContext.setUserId(context.getUserId());
+        userFileService.copy(copyFileContext);
+    }
+
+    /**
+     * 校验文件ID是否属于一个分享
+     * @param shareId
+     * @param fileIdList
+     */
+    private void checkFileIdIsOnShareStatus(Long shareId, List<Long> fileIdList) {
+        checkFileIdIsOnShareStatusAndGetAllShareUserFiles(shareId, fileIdList);
+    }
+
+    /**
      * 校验文件是否处于分享状态
      * @param shareId
      * @param fileIdList
      * @return
      */
-    private List<UserFileVO> checkFileIdIsOnShareStatusAndGetAllShareUserFiles(Long shareId, ArrayList<Long> fileIdList) {
+    private List<UserFileVO> checkFileIdIsOnShareStatusAndGetAllShareUserFiles(Long shareId, List<Long> fileIdList) {
         List<Long> shareFileIdList = getShareFileIdList(shareId);
         if (CollUtil.isEmpty(shareFileIdList)) {
             return Lists.newArrayList();

@@ -2,6 +2,7 @@ package org.btbox.pan.services.modules.share.service;
 
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
+import org.btbox.pan.services.modules.share.convert.ShareSaveContext;
 import org.btbox.pan.services.modules.share.domain.context.*;
 import org.btbox.pan.services.modules.share.domain.entity.PanShare;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -86,4 +87,10 @@ public interface PanShareService extends IService<PanShare>{
      * @return: java.util.List<org.btbox.pan.services.modules.file.domain.vo.UserFileVO>
      */
     List<UserFileVO> fileList(QueryChildFileListContext context);
+
+    /**
+     * 转存至我的网盘
+     * @param context
+     */
+    void saveFiles(ShareSaveContext context);
 }

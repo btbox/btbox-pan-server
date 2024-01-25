@@ -15,9 +15,11 @@ import org.btbox.pan.services.common.utils.ShareIdUtil;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.convert.ShareConvert;
+import org.btbox.pan.services.modules.share.convert.ShareSaveContext;
 import org.btbox.pan.services.modules.share.domain.bo.CancelShareBO;
 import org.btbox.pan.services.modules.share.domain.bo.CheckShareCodeBO;
 import org.btbox.pan.services.modules.share.domain.bo.CreateShareUrlBO;
+import org.btbox.pan.services.modules.share.domain.bo.ShareSaveBO;
 import org.btbox.pan.services.modules.share.domain.context.*;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlListVO;
 import org.btbox.pan.services.modules.share.domain.vo.PanShareUrlVO;
@@ -113,6 +115,7 @@ public class ShareController {
 
     @Operation(summary = "获取下一级文件列表", description = "该接口提供了获取下一级文件列表的功能")
     @SaIgnore
+    @NeedShareCode
     @GetMapping("file/list")
     public R<List<UserFileVO>> fileList(@NotBlank(message = "文件的父ID不能为空") String parentId) {
         QueryChildFileListContext context = new QueryChildFileListContext();
@@ -121,6 +124,24 @@ public class ShareController {
 
         List<UserFileVO> vo = panShareService.fileList(context);
         return R.ok(vo);
+    }
+
+    @Operation(summary = "保存至我的网盘", description = "该接口提供了保存至我的网盘的功能")
+    @NeedShareCode
+    @PostMapping("save")
+    public R<Void> saveFiles(@Validated @RequestBody ShareSaveBO shareSaveBO) {
+        ShareSaveContext context = new ShareSaveContext();
+
+        String fileIds = shareSaveBO.getFileIds();
+        List<Long> fileIdList = StrUtil.split(fileIds, BtboxConstants.COMMON_SEPARATOR).stream().map(IdUtil::decrypt).toList();
+        context.setFileIdList(fileIdList);
+
+        context.setTargetParentId(IdUtil.decrypt(shareSaveBO.getTargetParentId()));
+        context.setUserId(LoginHelper.getUserId());
+        context.setShareId(ShareIdUtil.get());
+
+        panShareService.saveFiles(context);
+        return R.ok();
     }
 
 }
