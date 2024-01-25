@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import org.assertj.core.util.Lists;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
+import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.file.service.UserFileService;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.domain.context.*;
@@ -236,6 +237,38 @@ public class ShareTest {
         queryShareSimpleDetailContext.setShareId(vo.getShareId());
         ShareSimpleDetailVO shareSimpleDetailVO = panShareService.simpleDetail(queryShareSimpleDetailContext);
         Assert.notNull(shareSimpleDetailVO);
+    }
+
+    /**
+     * 校验查询分享下一级文件列表成功
+     */
+    @Test
+    public void queryShareFileListSuccess() {
+        Long userId = register();
+        UserInfoVO userInfoVO = info(userId);
+
+        CreateFolderContext context = new CreateFolderContext();
+        context.setParentId(userInfoVO.getRootFileId());
+        context.setUserId(userId);
+        context.setFolderName("folder-name");
+
+        Long fileId = userFileService.createFolder(context);
+        Assert.notNull(fileId);
+
+        CreateShareUrlContext createShareUrlContext = new CreateShareUrlContext();
+        createShareUrlContext.setShareName("share-1");
+        createShareUrlContext.setShareDayType(ShareDayTypeEnum.SEVEN_DAYS_VALIDITY.getCode());
+        createShareUrlContext.setShareType(ShareTypeEnum.NEED_SHARE_CODE.getCode());
+        createShareUrlContext.setUserId(userId);
+        createShareUrlContext.setShareFileIdList(Lists.newArrayList(userInfoVO.getRootFileId()));
+        PanShareUrlVO vo = panShareService.create(createShareUrlContext);
+        Assert.isTrue(Objects.nonNull(vo));
+
+        QueryChildFileListContext queryChildFileListContext = new QueryChildFileListContext();
+        queryChildFileListContext.setShareId(vo.getShareId());
+        queryChildFileListContext.setParentId(userInfoVO.getRootFileId());
+        List<UserFileVO> fileVOList = panShareService.fileList(queryChildFileListContext);
+        Assert.notEmpty(fileVOList);
     }
 
     private Long register() {

@@ -1,5 +1,6 @@
 package org.btbox.pan.services.modules.share.service;
 
+import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.domain.context.*;
 import org.btbox.pan.services.modules.share.domain.entity.PanShare;
@@ -75,4 +76,14 @@ public interface PanShareService extends IService<PanShare>{
      * @return: org.btbox.pan.services.modules.share.domain.vo.ShareSimpleDetailVO
      */
     ShareSimpleDetailVO simpleDetail(QueryShareSimpleDetailContext context);
+
+    /**
+     * 获取下一级的文件列表
+     * @author: BT-BOX(HJH)
+     * @param context
+     * @version: 1.0
+     * @createDate: 2024/1/25 10:29
+     * @return: java.util.List<org.btbox.pan.services.modules.file.domain.vo.UserFileVO>
+     */
+    List<UserFileVO> fileList(QueryChildFileListContext context);
 }

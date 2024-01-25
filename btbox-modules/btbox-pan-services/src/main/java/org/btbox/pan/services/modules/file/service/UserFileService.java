@@ -181,4 +181,19 @@ public interface UserFileService extends IService<UserFile> {
      * @return: java.util.List<org.btbox.pan.services.modules.file.domain.entity.UserFile>
      */
     List<UserFile> findAllFileRecords(List<UserFile> records);
+
+    /**
+     * 递归查询所有的子文件信息
+     * @param fileIdList
+     * @return
+     */
+    List<UserFile> findAllFileRecordsByFileIdList(List<Long> fileIdList);
+
+    /**
+     * 实体转换
+     * @param records
+     * @return
+     */
+    List<UserFileVO> transferVOList(List<UserFile> records);
+
 }

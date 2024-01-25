@@ -7,6 +7,7 @@ import org.btbox.pan.services.modules.file.domain.bo.*;
 import org.btbox.pan.services.modules.file.domain.context.*;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.domain.vo.FolderTreeNodeVO;
+import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.storage.engine.core.context.StoreFileChunkContext;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -65,4 +66,6 @@ public interface FileConvert {
     @Mapping(target = "id", source = "record.fileId")
     @Mapping(target = "children", expression = "java(Lists.newArrayList())")
     FolderTreeNodeVO userFile2FolderTreeNodeVO(UserFile record);
+
+    UserFileVO userFile2UserFileVO(UserFile record);
 }

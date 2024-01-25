@@ -12,6 +12,7 @@ import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.satoken.utils.LoginHelper;
 import org.btbox.pan.services.common.annotation.NeedShareCode;
 import org.btbox.pan.services.common.utils.ShareIdUtil;
+import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
 import org.btbox.pan.services.modules.share.convert.CancelShareContext;
 import org.btbox.pan.services.modules.share.convert.ShareConvert;
 import org.btbox.pan.services.modules.share.domain.bo.CancelShareBO;
@@ -107,6 +108,18 @@ public class ShareController {
         QueryShareSimpleDetailContext context = new QueryShareSimpleDetailContext();
         context.setShareId(IdUtil.decrypt(shareId));
         ShareSimpleDetailVO vo = panShareService.simpleDetail(context);
+        return R.ok(vo);
+    }
+
+    @Operation(summary = "获取下一级文件列表", description = "该接口提供了获取下一级文件列表的功能")
+    @SaIgnore
+    @GetMapping("file/list")
+    public R<List<UserFileVO>> fileList(@NotBlank(message = "文件的父ID不能为空") String parentId) {
+        QueryChildFileListContext context = new QueryChildFileListContext();
+        context.setShareId(ShareIdUtil.get());
+        context.setParentId(IdUtil.decrypt(parentId));
+
+        List<UserFileVO> vo = panShareService.fileList(context);
         return R.ok(vo);
     }
 

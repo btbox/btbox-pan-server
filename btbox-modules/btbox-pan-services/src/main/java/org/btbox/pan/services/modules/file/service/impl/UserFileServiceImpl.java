@@ -363,8 +363,38 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         if (folderCount == 0) {
             return result;
         }
-        result.stream().forEach(record -> doFindAllChildRecords(result, record));
+        records.stream().forEach(record -> doFindAllChildRecords(result, record));
         return result;
+    }
+
+    /**
+     * findAllFileRecordsByFileIdList
+     * @param fileIdList
+     * @return
+     */
+    @Override
+    public List<UserFile> findAllFileRecordsByFileIdList(List<Long> fileIdList) {
+        if (CollUtil.isEmpty(fileIdList)) {
+            return Lists.newArrayList();
+        }
+        List<UserFile> records = this.listByIds(fileIdList);
+        if (CollUtil.isEmpty(records)) {
+            return Lists.newArrayList();
+        }
+        return findAllFileRecords(records);
+    }
+
+    /**
+     * 实体转换
+     * @param records
+     * @return
+     */
+    @Override
+    public List<UserFileVO> transferVOList(List<UserFile> records) {
+        if (CollUtil.isEmpty(records)) {
+            return Lists.newArrayList();
+        }
+        return records.stream().map(fileConvert::userFile2UserFileVO).collect(Collectors.toList());
     }
 
     /**
