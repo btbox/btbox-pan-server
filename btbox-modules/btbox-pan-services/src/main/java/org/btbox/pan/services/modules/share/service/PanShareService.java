@@ -93,4 +93,10 @@ public interface PanShareService extends IService<PanShare>{
      * @param context
      */
     void saveFiles(ShareSaveContext context);
+
+    /**
+     * 分享文件的下载
+     * @param context
+     */
+    void download(ShareFileDownloadContext context);
 }

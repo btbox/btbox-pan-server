@@ -18,6 +18,7 @@ import org.btbox.common.core.utils.JwtUtil;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.pan.services.common.config.PanServerConfig;
 import org.btbox.pan.services.modules.file.domain.context.CopyFileContext;
+import org.btbox.pan.services.modules.file.domain.context.FileDownloadContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.domain.vo.UserFileVO;
@@ -226,6 +227,32 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
         checkShareStatus(context.getShareId());
         checkFileIdIsOnShareStatus(context.getShareId(), context.getFileIdList());
         doSaveFiles(context);
+    }
+
+    /**
+     * 分享文件的下载
+     * 1. 校验分享状态
+     * 2. 校验文件ID的合法性
+     * 3. 执行文件下载的动作
+     * @param context
+     */
+    @Override
+    public void download(ShareFileDownloadContext context) {
+        checkShareStatus(context.getShareId());
+        checkFileIdIsOnShareStatus(context.getShareId(), Lists.newArrayList(context.getFileId()));
+        doDownload(context);
+    }
+
+    /**
+     * 执行分享文件下载
+     * @param context
+     */
+    private void doDownload(ShareFileDownloadContext context) {
+        FileDownloadContext fileDownloadContext = new FileDownloadContext();
+        fileDownloadContext.setFileId(context.getFileId());
+        fileDownloadContext.setUserId(context.getUserId());
+        fileDownloadContext.setResponse(context.getResponse());
+        userFileService.downloadWithoutCheckUser(fileDownloadContext);
     }
 
     /**

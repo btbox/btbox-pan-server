@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.btbox.common.core.constant.BtboxConstants;
@@ -142,6 +143,20 @@ public class ShareController {
 
         panShareService.saveFiles(context);
         return R.ok();
+    }
+
+    @Operation(summary = "分享文件下载", description = "该接口提供了分享文件下载的功能")
+    @NeedShareCode
+    @GetMapping("file/download")
+    public void download(@NotBlank(message = "文件ID不能为空") String fileId,
+                         HttpServletResponse response) {
+        ShareFileDownloadContext context = new ShareFileDownloadContext();
+        context.setFileId(IdUtil.decrypt(fileId));
+        context.setShareId(ShareIdUtil.get());
+        context.setUserId(LoginHelper.getUserId());
+        context.setResponse(response);
+
+        panShareService.download(context);
     }
 
 }

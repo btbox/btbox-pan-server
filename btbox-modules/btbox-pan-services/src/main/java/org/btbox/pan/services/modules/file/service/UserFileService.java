@@ -5,6 +5,7 @@ import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.btbox.pan.services.modules.file.domain.vo.*;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -118,6 +119,12 @@ public interface UserFileService extends IService<UserFile> {
      * @param context
      */
     void download(FileDownloadContext context);
+
+    /**
+     * 文件下载不校验用户是否是上传用户
+     * @param context
+     */
+    void downloadWithoutCheckUser(FileDownloadContext context);
 
     /**
      * 文件预览

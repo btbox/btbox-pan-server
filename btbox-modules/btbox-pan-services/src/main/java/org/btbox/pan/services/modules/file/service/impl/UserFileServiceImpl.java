@@ -251,6 +251,19 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     }
 
     /**
+     * 文件下载不校验用户是否是上传用户
+     * @param context
+     */
+    @Override
+    public void downloadWithoutCheckUser(FileDownloadContext context) {
+        UserFile record = this.getById(context.getFileId());
+        if (checkIsFolder(record)) {
+            throw new ServiceException("文件夹暂不支持下载");
+        }
+        doDownload(record, context.getResponse());
+    }
+
+    /**
      * 文件预览
      * 1. 参数校验：校验文件是否存在，文件是否属于该用户
      * 2. 校验该文件是不是一个文件夹
