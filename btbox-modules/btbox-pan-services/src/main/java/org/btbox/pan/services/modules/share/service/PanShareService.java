@@ -99,4 +99,10 @@ public interface PanShareService extends IService<PanShare>{
      * @param context
      */
     void download(ShareFileDownloadContext context);
+
+    /**
+     * 刷新受影响的对应分享的状态
+     * @param allAvailableFileIdList
+     */
+    void refreshShareStatus(List<Long> allAvailableFileIdList);
 }

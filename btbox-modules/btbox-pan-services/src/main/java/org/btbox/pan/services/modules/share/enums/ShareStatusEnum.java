@@ -13,7 +13,7 @@ import lombok.Getter;
 @Getter
 public enum ShareStatusEnum {
 
-    NEED_SHARE_CODE(0, "正常状态"),
+    NORMAL(0, "正常状态"),
 
     FILE_DELETED(1, "有文件被删除"),
 

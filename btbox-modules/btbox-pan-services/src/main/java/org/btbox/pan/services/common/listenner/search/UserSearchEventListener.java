@@ -8,7 +8,9 @@ import org.btbox.pan.services.modules.user.domain.entity.PanUserSearchHistory;
 import org.btbox.pan.services.modules.user.service.PanUserSearchHistoryService;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Date;
 
@@ -28,6 +30,7 @@ public class UserSearchEventListener {
      * 监听用户搜索事件，将其保存到用户的搜索历史记录中
      */
     @EventListener(classes = UserSearchEvent.class)
+    @Async(value = "eventListenerTaskExecutor")
     public void saveSearchHistory(UserSearchEvent event) {
         PanUserSearchHistory record = new PanUserSearchHistory();
         record.setId(IdUtil.get());

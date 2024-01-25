@@ -17,6 +17,7 @@ import org.btbox.pan.storage.engine.core.StorageEngine;
 import org.btbox.pan.storage.engine.core.context.DeleteFileContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -49,6 +50,7 @@ public class FilePhysicalDeleteEventListener {
      * 3. 物理清理文件(委托文件存储引擎)
      */
     @EventListener(classes = FilePhysicalDeleteEvent.class)
+    @Async(value = "eventListenerTaskExecutor")
     public void physicalDeleteFile(FilePhysicalDeleteEvent event) {
         List<UserFile> allRecords = event.getAllRecords();
         if (CollUtil.isEmpty(allRecords)) {

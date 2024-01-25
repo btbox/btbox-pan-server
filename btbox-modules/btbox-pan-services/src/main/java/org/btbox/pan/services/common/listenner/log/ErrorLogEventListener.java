@@ -6,6 +6,7 @@ import org.btbox.pan.services.common.event.log.ErrorLogEvent;
 import org.btbox.pan.services.modules.log.domain.entity.PanErrorLog;
 import org.btbox.pan.services.modules.log.service.PanErrorLogService;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,6 +25,7 @@ public class ErrorLogEventListener {
      * 监听系统错误日志事件，并奥村到数据库中
      */
     @EventListener(ErrorLogEvent.class)
+    @Async(value = "eventListenerTaskExecutor")
     public void saveErrorLog(ErrorLogEvent event) {
         PanErrorLog record = new PanErrorLog();
         record.setId(IdUtil.get());

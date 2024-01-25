@@ -5,11 +5,14 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.util.Lists;
+import org.assertj.core.util.Sets;
 import org.btbox.common.core.constant.BtboxConstants;
+import org.btbox.common.core.constant.FileConstants;
 import org.btbox.common.core.enums.DelFlagEnum;
 import org.btbox.common.core.enums.ResponseCode;
 import org.btbox.common.core.exception.ServiceException;
@@ -17,6 +20,7 @@ import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.core.utils.JwtUtil;
 import org.btbox.common.core.utils.MapstructUtils;
 import org.btbox.pan.services.common.config.PanServerConfig;
+import org.btbox.pan.services.common.event.log.ErrorLogEvent;
 import org.btbox.pan.services.modules.file.domain.context.CopyFileContext;
 import org.btbox.pan.services.modules.file.domain.context.FileDownloadContext;
 import org.btbox.pan.services.modules.file.domain.context.QueryFileListContext;
@@ -37,6 +41,7 @@ import org.btbox.pan.services.modules.share.service.PanShareFileService;
 import org.btbox.pan.services.modules.share.service.PanShareService;
 import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
 import org.btbox.pan.services.modules.user.service.UserService;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +65,8 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
     private final UserFileService userFileService;
 
     private final UserService userService;
+
+    private final ApplicationContext applicationContext;
 
     /**
      * 创建分享链接
@@ -103,9 +110,6 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
         queryWrapper.eq(PanShare::getCreateUser, context.getUserId());
         return MapstructUtils.convert(this.list(queryWrapper), PanShareUrlListVO.class);
     }
-
-
-    /***************************************** private ****************************************/
 
     /**
      * 取消分享链接
@@ -241,6 +245,109 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
         checkShareStatus(context.getShareId());
         checkFileIdIsOnShareStatus(context.getShareId(), Lists.newArrayList(context.getFileId()));
         doDownload(context);
+    }
+
+    /**
+     * 刷新受影响的对应分享的状态
+     * 1. 查询所有受影响的分享的ID集合
+     * 2. 去判断每一个分享对应的文件以及所有父文件信息均为正常，这种情况，把分享的状态变为正常
+     * 3. 如果有分享的文件或者父文件信息被删除，变更该分享的状态为有文件被删除
+     * @param allAvailableFileIdList
+     */
+    @Override
+    public void refreshShareStatus(List<Long> allAvailableFileIdList) {
+        List<Long> shareIdList = getShareIdListByFileIdList(allAvailableFileIdList);
+        if (CollUtil.isEmpty(shareIdList)) {
+            return;
+        }
+        Set<Long> shareIdSet = Sets.newHashSet(shareIdList);
+        shareIdSet.stream().forEach(this::refreshOneShareStatus);
+    }
+
+    /***************************************** private ****************************************/
+
+
+    /**
+     * 刷新一个分享的分享状态
+     * 1. 查询对应的分享信息，判断有效
+     * 2. 去判断该分享对应的文件以及所有父文件信息均为正常，该种情况，把分享的状态变为正常
+     * 3. 如果有分享的文件或者父文件信息被删除，变更该分享的状态为有文件被删除
+     * @param shareId
+     */
+    private void refreshOneShareStatus(Long shareId) {
+        PanShare record = this.getById(shareId);
+        if (ObjectUtil.isNull(record)) {
+            return;
+        }
+        ShareStatusEnum shareStatus = ShareStatusEnum.NORMAL;
+        if (!checkShareFileAvailable(shareId)) {
+            shareStatus = ShareStatusEnum.FILE_DELETED;
+        }
+        if (ObjectUtil.equals(record.getShareStatus(), shareStatus.getCode())) {
+            return;
+        }
+        doChangeShareStatus(shareId, shareStatus);
+    }
+
+    /**
+     * 执行刷新文件分享的状态的动作
+     * @param shareId
+     * @param shareStatus
+     */
+    private void doChangeShareStatus(Long shareId, ShareStatusEnum shareStatus) {
+        LambdaUpdateWrapper<PanShare> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(PanShare::getShareId, shareId);
+        updateWrapper.set(PanShare::getShareStatus, shareStatus.getCode());
+        if (!this.update(updateWrapper)) {
+            applicationContext.publishEvent(new ErrorLogEvent(this, "更新分享状态失败,请手动更改状态,分享ID为:" + shareId + ",分享状态改为:" + shareStatus.getCode(), BtboxConstants.ZERO_LONG));
+        }
+    }
+
+    /**
+     * 检查该分享所有的文件以及所有的父文件均为正常状态
+     * @param shareId
+     * @return
+     */
+    private boolean checkShareFileAvailable(Long shareId) {
+        List<Long> shareFileIdList = getShareFileIdList(shareId);
+        for (Long fileId : shareFileIdList) {
+            if (!checkUpFileAvailable(fileId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 检查该文件以及所有的文件夹信息均为正常状态
+     * @param fileId
+     * @return
+     */
+    private boolean checkUpFileAvailable(Long fileId) {
+        UserFile record = userFileService.getById(fileId);
+        if (ObjectUtil.isNull(record)) {
+            return false;
+        }
+        if (ObjectUtil.equals(record.getDelFlag(), DelFlagEnum.YES.getCode())) {
+            return false;
+        }
+        if (ObjectUtil.equals(record.getParentId(), FileConstants.TOP_PARENT_ID)) {
+            return true;
+        }
+        return checkUpFileAvailable(record.getParentId());
+    }
+
+    /**
+     * 通过文件ID查询对应的分享ID集合
+     * @param allAvailableFileIdList
+     * @return
+     */
+    private List<Long> getShareIdListByFileIdList(List<Long> allAvailableFileIdList) {
+        LambdaQueryWrapper<PanShareFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(PanShareFile::getShareId);
+        queryWrapper.in(PanShareFile::getFileId, allAvailableFileIdList);
+        List<Long> shareIdList = panShareFileService.listObjs(queryWrapper, value -> (Long) value);
+        return shareIdList;
     }
 
     /**
