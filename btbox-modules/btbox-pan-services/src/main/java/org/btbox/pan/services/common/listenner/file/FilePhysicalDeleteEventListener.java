@@ -57,6 +57,9 @@ public class FilePhysicalDeleteEventListener {
             return;
         }
         List<Long> realFileIdList = findAllUnusedRealFileIdList(allRecords);
+        if (CollUtil.isEmpty(realFileIdList)) {
+            return;
+        }
         List<PanFile> realFileRecords = panFileService.listByIds(realFileIdList);
         if (CollUtil.isEmpty(realFileRecords)) {
             return;
