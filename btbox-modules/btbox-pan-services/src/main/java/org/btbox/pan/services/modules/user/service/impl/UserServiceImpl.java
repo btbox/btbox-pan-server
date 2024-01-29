@@ -17,6 +17,7 @@ import org.btbox.common.core.enums.ResponseCode;
 import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.*;
 import org.btbox.common.satoken.utils.LoginHelper;
+import org.btbox.pan.services.common.cache.AnnotationCacheService;
 import org.btbox.pan.services.modules.file.domain.context.CreateFolderContext;
 import org.btbox.pan.services.modules.file.domain.entity.UserFile;
 import org.btbox.pan.services.modules.file.service.UserFileService;
@@ -26,10 +27,14 @@ import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
 import org.btbox.pan.services.modules.user.domain.vo.UserInfoVO;
 import org.btbox.pan.services.modules.user.repository.mapper.BtboxPanUserMapper;
 import org.btbox.pan.services.modules.user.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
 import java.lang.constant.ConstantDesc;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -40,13 +45,17 @@ import java.util.List;
  * @version: 1.0
  */
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUser> implements UserService {
 
-    private final UserFileService userFileService;
+    @Autowired
+    private UserFileService userFileService;
 
-    private final UserConvert userConvert;
+    @Autowired
+    private UserConvert userConvert;
 
+    @Autowired
+    @Qualifier(value = "userAnnotationCacheService")
+    private AnnotationCacheService<BtboxPanUser> cacheService;
     
     @Override
     public Long register(UserRegisterContext userRegisterContext) {
@@ -121,6 +130,36 @@ public class UserServiceImpl extends ServiceImpl<BtboxPanUserMapper, BtboxPanUse
     public void resetPassword(ResetPasswordContext context) {
         checkForgetPasswordToken(context);
         checkAndResetUserPassword(context);
+    }
+
+    @Override
+    public boolean removeById(Serializable id) {
+        return cacheService.removeById(id);
+    }
+
+    @Override
+    public boolean removeByIds(Collection<?> list) {
+        throw new ServiceException("请更换手动缓存");
+    }
+
+    @Override
+    public boolean updateById(BtboxPanUser entity) {
+        return cacheService.updateById(entity.getUserId(), entity);
+    }
+
+    @Override
+    public BtboxPanUser getById(Serializable id) {
+        return cacheService.getById(id);
+    }
+
+    @Override
+    public boolean updateBatchById(Collection<BtboxPanUser> entityList, int batchSize) {
+        throw new ServiceException("请更换手动缓存");
+    }
+
+    @Override
+    public List<BtboxPanUser> listByIds(Collection<? extends Serializable> idList) {
+        throw new ServiceException("请更换手动缓存");
     }
 
     /**

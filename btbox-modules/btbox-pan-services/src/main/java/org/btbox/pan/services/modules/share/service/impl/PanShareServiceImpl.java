@@ -7,7 +7,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.util.Lists;
 import org.assertj.core.util.Sets;
@@ -19,6 +18,7 @@ import org.btbox.common.core.exception.ServiceException;
 import org.btbox.common.core.utils.IdUtil;
 import org.btbox.common.core.utils.JwtUtil;
 import org.btbox.common.core.utils.MapstructUtils;
+import org.btbox.pan.services.common.cache.ManualCacheService;
 import org.btbox.pan.services.common.config.PanServerConfig;
 import org.btbox.pan.services.common.event.log.ErrorLogEvent;
 import org.btbox.pan.services.modules.file.domain.context.CopyFileContext;
@@ -41,10 +41,13 @@ import org.btbox.pan.services.modules.share.service.PanShareFileService;
 import org.btbox.pan.services.modules.share.service.PanShareService;
 import org.btbox.pan.services.modules.user.domain.entity.BtboxPanUser;
 import org.btbox.pan.services.modules.user.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,18 +58,26 @@ import java.util.stream.Collectors;
  * @version: 1.0
 */
 @Service
-@RequiredArgsConstructor
 public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> implements PanShareService{
 
-    private final PanServerConfig panServerConfig;
+    @Autowired
+    private PanServerConfig panServerConfig;
 
-    private final PanShareFileService panShareFileService;
+    @Autowired
+    private PanShareFileService panShareFileService;
 
-    private final UserFileService userFileService;
+    @Autowired
+    private UserFileService userFileService;
 
-    private final UserService userService;
+    @Autowired
+    private UserService userService;
 
-    private final ApplicationContext applicationContext;
+    @Autowired
+    private ApplicationContext applicationContext;
+    
+    @Autowired
+    @Qualifier(value = "shareManualCacheService")
+    private ManualCacheService<PanShare> cacheService;
 
     /**
      * 创建分享链接
@@ -264,6 +275,40 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
         shareIdSet.stream().forEach(this::refreshOneShareStatus);
     }
 
+    @Override
+    public boolean removeById(Serializable id) {
+        return cacheService.removeById(id);
+    }
+
+    @Override
+    public boolean removeByIds(Collection<?> list) {
+        return cacheService.removeByIds((Collection<? extends Serializable>) list);
+    }
+
+    @Override
+    public boolean updateById(PanShare entity) {
+        return cacheService.updateById(entity.getShareId(), entity);
+    }
+
+    @Override
+    public boolean updateBatchById(Collection<PanShare> entityList) {
+        if (CollUtil.isEmpty(entityList)) {
+            return true;
+        }
+        Map<Long, PanShare> entityMap = entityList.stream().collect(Collectors.toMap(PanShare::getShareId, e -> e));
+        return cacheService.updateByIds(entityMap);
+    }
+
+    @Override
+    public PanShare getById(Serializable id) {
+        return cacheService.getById(id);
+    }
+
+    @Override
+    public List<PanShare> listByIds(Collection<? extends Serializable> idList) {
+        return cacheService.getByIds(idList);
+    }
+
     /***************************************** private ****************************************/
 
 
@@ -286,20 +331,18 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
         if (ObjectUtil.equals(record.getShareStatus(), shareStatus.getCode())) {
             return;
         }
-        doChangeShareStatus(shareId, shareStatus);
+        doChangeShareStatus(record, shareStatus);
     }
 
     /**
      * 执行刷新文件分享的状态的动作
-     * @param shareId
+     * @param record
      * @param shareStatus
      */
-    private void doChangeShareStatus(Long shareId, ShareStatusEnum shareStatus) {
-        LambdaUpdateWrapper<PanShare> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(PanShare::getShareId, shareId);
-        updateWrapper.set(PanShare::getShareStatus, shareStatus.getCode());
-        if (!this.update(updateWrapper)) {
-            applicationContext.publishEvent(new ErrorLogEvent(this, "更新分享状态失败,请手动更改状态,分享ID为:" + shareId + ",分享状态改为:" + shareStatus.getCode(), BtboxConstants.ZERO_LONG));
+    private void doChangeShareStatus(PanShare record, ShareStatusEnum shareStatus) {
+        record.setShareStatus(shareStatus.getCode());
+        if (!this.updateById(record)) {
+            applicationContext.publishEvent(new ErrorLogEvent(this, "更新分享状态失败,请手动更改状态,分享ID为:" + record.getShareId() + ",分享状态改为:" + shareStatus.getCode(), BtboxConstants.ZERO_LONG));
         }
     }
 

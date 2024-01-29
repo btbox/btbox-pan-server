@@ -22,4 +22,10 @@ public interface CacheConstants {
      */
     String SYS_DICT_KEY = "sys_dict:";
 
+
+    /**
+     * BtBox Pan 服务端公用缓存名称
+     */
+    String BTBOX_PAN_CACHE_NAME = "BTBOX_PAN_CACHE";
+
 }
