@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.yaml.snakeyaml.util.UriEncoder;
 
 import java.io.Serializable;
 import java.util.*;
@@ -730,6 +731,6 @@ public class PanShareServiceImpl extends ServiceImpl<PanShareMapper, PanShare> i
         if (sharePrefix.lastIndexOf(BtboxConstants.SLASH_STR) == BtboxConstants.MINUS_ONE_INT) {
             sharePrefix += BtboxConstants.SLASH_STR;
         }
-        return sharePrefix + shareId;
+        return sharePrefix + UriEncoder.encode(IdUtil.encrypt(shareId));
     }
 }

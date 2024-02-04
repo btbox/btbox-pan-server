@@ -25,5 +25,5 @@ public class PanServerConfig {
      */
     private Integer chunkFileExpirationDays = BtboxConstants.ONE_INT;
 
-    private String sharePrefix = "http://127.0.0.1:" + serverPort + "/share/";
+    private String sharePrefix = "http://127.0.0.1:8090/share/";
 }

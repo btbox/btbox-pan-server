@@ -58,7 +58,7 @@ public class FileController {
         List<Integer> fileTypeArray = null;
 
         if (!ObjectUtil.equals(FileConstants.ALL_FILE_TYPE, fileTypes)) {
-            fileTypeArray = StrUtil.split(BtboxConstants.COMMON_SEPARATOR, fileTypes).stream().map(Integer::valueOf).collect(Collectors.toList());
+            fileTypeArray = StrUtil.split(fileTypes, BtboxConstants.COMMON_SEPARATOR).stream().map(Integer::valueOf).collect(Collectors.toList());
         }
 
         QueryFileListContext queryFileListContext = new QueryFileListContext();
@@ -91,7 +91,7 @@ public class FileController {
     public R<Void> delete(@Validated @RequestBody DeleteFileBO deleteFileBO) {
         DeleteFileContext context = fileConvert.deleteFileBO2DeleteFileContext(deleteFileBO);
         String fileIds = deleteFileBO.getFileIds();
-        List<Long> fileIdList = StrUtil.split(BtboxConstants.COMMON_SEPARATOR, fileIds).stream().map(IdUtil::decrypt).collect(Collectors.toList());
+        List<Long> fileIdList = StrUtil.split(fileIds, BtboxConstants.COMMON_SEPARATOR).stream().map(IdUtil::decrypt).collect(Collectors.toList());
         context.setFileIdList(fileIdList);
         userFileService.deleteFile(context);
         return R.ok();

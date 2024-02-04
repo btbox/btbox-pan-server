@@ -228,7 +228,7 @@ public class IdUtil {
         if (StringUtils.isBlank(decryptIdStr)) {
             return Lists.newArrayList();
         }
-        List<String> decryptIdList = StrUtil.split(BtboxConstants.COMMON_SEPARATOR, decryptIdStr);
+        List<String> decryptIdList = StrUtil.split(decryptIdStr, BtboxConstants.COMMON_SEPARATOR);
         if (CollectionUtils.isEmpty(decryptIdList)) {
             return Lists.newArrayList();
         }
